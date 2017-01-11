@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="11762" systemVersion="16C67" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11757"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Main View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="MainViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="y3c-jy-aDJ"/>
+                        <viewControllerLayoutGuide type="bottom" id="wfy-db-euE"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="1024" height="768"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="lw8-38-8p9" userLabel="cameraPreview">
+                                <rect key="frame" x="0.0" y="0.0" width="1024" height="768"/>
+                                <color key="backgroundColor" red="0.66666666666666663" green="0.66666666666666663" blue="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            </view>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="cAY-cZ-Zjz" userLabel="uisubsRoot">
+                                <rect key="frame" x="0.0" y="0.0" width="1024" height="768"/>
+                                <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
+                            </view>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Iej-s7-yhm" userLabel="RecButton">
+                                <rect key="frame" x="484" y="702" width="56" height="56"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="56" id="6X8-sH-Iym"/>
+                                    <constraint firstAttribute="width" constant="56" id="yd4-eB-PSF"/>
+                                </constraints>
+                                <state key="normal" image="btn_rec_white">
+                                    <color key="titleShadowColor" red="0.5" green="0.5" blue="0.5" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                </state>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstAttribute="centerX" secondItem="lw8-38-8p9" secondAttribute="centerX" id="9qB-Xb-ChG"/>
+                            <constraint firstAttribute="centerY" secondItem="cAY-cZ-Zjz" secondAttribute="centerY" id="Ddy-eZ-op8"/>
+                            <constraint firstAttribute="width" secondItem="lw8-38-8p9" secondAttribute="width" id="K3N-6b-ae8"/>
+                            <constraint firstAttribute="width" secondItem="cAY-cZ-Zjz" secondAttribute="width" id="Ogo-Gv-tBO"/>
+                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="Iej-s7-yhm" secondAttribute="bottom" constant="10" id="Ot2-QC-eHC"/>
+                            <constraint firstAttribute="height" secondItem="lw8-38-8p9" secondAttribute="height" id="TSq-nC-IxF"/>
+                            <constraint firstAttribute="height" secondItem="cAY-cZ-Zjz" secondAttribute="height" id="WFq-TM-2Or"/>
+                            <constraint firstAttribute="centerY" secondItem="lw8-38-8p9" secondAttribute="centerY" id="cYU-vt-5VK"/>
+                            <constraint firstAttribute="centerX" secondItem="cAY-cZ-Zjz" secondAttribute="centerX" id="cnC-VC-Nqj"/>
+                            <constraint firstAttribute="centerX" secondItem="Iej-s7-yhm" secondAttribute="centerX" id="tKd-zS-doN"/>
+                        </constraints>
+                    </view>
+                    <simulatedStatusBarMetrics key="simulatedStatusBarMetrics" statusBarStyle="lightContent"/>
+                    <nil key="simulatedTopBarMetrics"/>
+                    <nil key="simulatedBottomBarMetrics"/>
+                    <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+                    <size key="freeformSize" width="1024" height="768"/>
+                    <connections>
+                        <outlet property="previewView" destination="lw8-38-8p9" id="2Fb-Aj-AOj"/>
+                        <outlet property="toggleStreaming" destination="Iej-s7-yhm" id="PjT-em-FRb"/>
+                        <outlet property="uisubsRoot" destination="cAY-cZ-Zjz" id="OUQ-2J-FTb"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="477" y="463"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="btn_rec_white" width="46" height="46"/>
+    </resources>
+</document>

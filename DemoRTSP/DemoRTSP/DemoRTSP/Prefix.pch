@@ -1,0 +1,36 @@
+//
+//  Prefix.pch
+//  DemoRTSP
+//
+//  Created by IPv6 on 17/02/15.
+//  Copyright (c) 2015 DENIVIP Group. All rights reserved.
+//
+
+#ifndef DemoRTSP_Prefix_pch
+#define DemoRTSP_Prefix_pch
+
+#ifdef __OBJC__
+#import <Availability.h>
+#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
+#import "DDLog.h"
+#import "EXTScope.h"
+#import "EXTSelectorChecking.h"
+#import <QuartzCore/CAAnimation.h>
+
+#define DV_SYSTEM_VERSION_LESS_THAN(v)              ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
+#define SYSTEM_VERSION_EQUAL_TO(v)                  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedSame)
+#define SYSTEM_VERSION_GREATER_THAN(v)              ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedDescending)
+#define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
+#define SYSTEM_VERSION_LESS_THAN(v)                 ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
+#define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
+
+#define iOS7 SYSTEM_VERSION_LESS_THAN(@"8.0")
+#define iOS8 SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"8.0")
+#define isIpad [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad
+
+#endif
+
+#endif
+
+
