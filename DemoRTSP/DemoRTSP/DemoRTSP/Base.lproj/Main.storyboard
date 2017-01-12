@@ -29,14 +29,6 @@
                                 <rect key="frame" x="0.0" y="0.0" width="1024" height="768"/>
                                 <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
                             </view>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="2gI-17-Tvr" customClass="SmoothLineView">
-                                <rect key="frame" x="262" y="134" width="500" height="500"/>
-                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="500" id="47f-6q-Cof"/>
-                                    <constraint firstAttribute="height" constant="500" id="XbZ-RV-Epi"/>
-                                </constraints>
-                            </view>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Iej-s7-yhm" userLabel="RecButton">
                                 <rect key="frame" x="484" y="702" width="56" height="56"/>
                                 <constraints>
@@ -57,10 +49,8 @@
                             <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="Iej-s7-yhm" secondAttribute="bottom" constant="10" id="Ot2-QC-eHC"/>
                             <constraint firstAttribute="height" secondItem="lw8-38-8p9" secondAttribute="height" id="TSq-nC-IxF"/>
                             <constraint firstAttribute="height" secondItem="cAY-cZ-Zjz" secondAttribute="height" id="WFq-TM-2Or"/>
-                            <constraint firstItem="2gI-17-Tvr" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="XdS-fb-qqi"/>
                             <constraint firstAttribute="centerY" secondItem="lw8-38-8p9" secondAttribute="centerY" id="cYU-vt-5VK"/>
                             <constraint firstAttribute="centerX" secondItem="cAY-cZ-Zjz" secondAttribute="centerX" id="cnC-VC-Nqj"/>
-                            <constraint firstItem="2gI-17-Tvr" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="d2r-iD-Nrj"/>
                             <constraint firstAttribute="centerX" secondItem="Iej-s7-yhm" secondAttribute="centerX" id="tKd-zS-doN"/>
                         </constraints>
                     </view>
@@ -70,9 +60,6 @@
                     <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
                     <size key="freeformSize" width="1024" height="768"/>
                     <connections>
-                        <outlet property="cs_fingerPainterH" destination="XbZ-RV-Epi" id="4Nu-8A-T1o"/>
-                        <outlet property="cs_fingerPainterW" destination="47f-6q-Cof" id="hjQ-U4-hB9"/>
-                        <outlet property="fingerPainter" destination="2gI-17-Tvr" id="4db-ta-jJY"/>
                         <outlet property="previewView" destination="lw8-38-8p9" id="2Fb-Aj-AOj"/>
                         <outlet property="toggleStreaming" destination="Iej-s7-yhm" id="PjT-em-FRb"/>
                         <outlet property="uisubsRoot" destination="cAY-cZ-Zjz" id="OUQ-2J-FTb"/>

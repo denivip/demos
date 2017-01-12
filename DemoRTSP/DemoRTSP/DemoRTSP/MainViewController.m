@@ -27,11 +27,11 @@ __weak static MainViewController *weakroot;
 @property (assign) float zoomingLevel;
 @property (assign) NSUInteger lastHandledVideoSeconds;
 @property (assign) Float64 prevFlushedChunkTs;
-@property (weak, nonatomic) IBOutlet SmoothLineView *fingerPainter;
-@property (weak, nonatomic) IBOutlet NSLayoutConstraint *cs_fingerPainterW;
-@property (weak, nonatomic) IBOutlet NSLayoutConstraint *cs_fingerPainterH;
-@property (assign) CGSize fingerPainterBufDims;
-@property (assign) CVImageBufferRef fingerPainterBuf;
+//@property (weak, nonatomic) IBOutlet SmoothLineView *fingerPainter;
+//@property (weak, nonatomic) IBOutlet NSLayoutConstraint *cs_fingerPainterW;
+//@property (weak, nonatomic) IBOutlet NSLayoutConstraint *cs_fingerPainterH;
+//@property (assign) CGSize fingerPainterBufDims;
+//@property (assign) CVImageBufferRef fingerPainterBuf;
 //@property (assign) double audioPts2send;
 @property (strong, nonatomic) RTSPServerConfig* rtspConfig;
 @property (strong, nonatomic) RTSPServer* rtsp;
@@ -67,10 +67,6 @@ static int needStartCapture = 0;
     [self.previewView addSubview:pv];
     self.uisubsRoot.userInteractionEnabled = YES;
     
-    self.fingerPainter.fadePerSec = 0.5;//2.5;
-    self.fingerPainter.userInteractionEnabled = YES;
-    self.fingerPainter.lineColor = [UIColor redColor];
-    
     UIPinchGestureRecognizer* pinchRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@checkselector(self, handlePinchToZoomRecognizer:)];
     [self.uisubsRoot addGestureRecognizer:pinchRecognizer];
    
@@ -88,9 +84,13 @@ static int needStartCapture = 0;
             needStartCapture = 0;
         }
     } repeats:YES];
-    [NSTimer scheduledTimerWithTimeInterval:1.0f/30.0f block:^{
-        [self updateFrameBlendingBuffers];
-    } repeats:YES];
+
+    //self.fingerPainter.fadePerSec = 0.5;//2.5;
+    //self.fingerPainter.userInteractionEnabled = YES;
+    //self.fingerPainter.lineColor = [UIColor redColor];
+    //[NSTimer scheduledTimerWithTimeInterval:1.0f/30.0f block:^{
+    //    [self updateFrameBlendingBuffers];
+    //} repeats:YES];
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@checkselector(self, serverNotfNetworkMsg:)
                                                  name:kNotfMessage
@@ -106,12 +106,12 @@ static int needStartCapture = 0;
 }
 
 - (void)dealloc {
-    @synchronized(self.fingerPainter){
-        if(self.fingerPainterBuf != nil){
-            CVPixelBufferRelease(self.fingerPainterBuf);
-            self.fingerPainterBuf = nil;
-        }
-    };
+//    @synchronized(self.fingerPainter){
+//        if(self.fingerPainterBuf != nil){
+//            CVPixelBufferRelease(self.fingerPainterBuf);
+//            self.fingerPainterBuf = nil;
+//        }
+//    };
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -327,53 +327,53 @@ static int needStartCapture = 0;
 }
 
 - (void)updateFrameBlendingBuffers {
-    @autoreleasepool {
-        if(self.fingerPainterBufDims.width < 1){
-            // Not now
-            return;
-        }
-        if(self.fingerPainter.empty){
-            if(self.fingerPainterBuf != nil){
-                @synchronized(self.fingerPainter){
-                    if(self.fingerPainterBuf != nil){
-                        CVPixelBufferRelease(self.fingerPainterBuf);
-                        self.fingerPainterBuf = nil;
-                    }
-                }
-            }
-            return;
-        }
-        UIGraphicsBeginImageContext(self.fingerPainterBufDims);//self.fingerPainter.bounds.size
-        [self.fingerPainter.layer renderInContext:UIGraphicsGetCurrentContext()];
-        UIImage *screenshot = UIGraphicsGetImageFromCurrentImageContext();
-        //screenshot = [MainViewController imageWithImage:screenshot scaledToSize:self.fingerPainterBufDims];
-        CVImageBufferRef fpb = [MainViewController pixelBufferFromCGImage:screenshot.CGImage];
-        UIGraphicsEndImageContext();
-        @synchronized(self.fingerPainter){
-            if(self.fingerPainterBuf != nil){
-                CVPixelBufferRelease(self.fingerPainterBuf);
-                self.fingerPainterBuf = nil;
-            }
-            self.fingerPainterBuf = fpb;
-        }
-    }
+//    @autoreleasepool {
+//        if(self.fingerPainterBufDims.width < 1){
+//            // Not now
+//            return;
+//        }
+//        if(self.fingerPainter.empty){
+//            if(self.fingerPainterBuf != nil){
+//                @synchronized(self.fingerPainter){
+//                    if(self.fingerPainterBuf != nil){
+//                        CVPixelBufferRelease(self.fingerPainterBuf);
+//                        self.fingerPainterBuf = nil;
+//                    }
+//                }
+//            }
+//            return;
+//        }
+//        UIGraphicsBeginImageContext(self.fingerPainterBufDims);//self.fingerPainter.bounds.size
+//        [self.fingerPainter.layer renderInContext:UIGraphicsGetCurrentContext()];
+//        UIImage *screenshot = UIGraphicsGetImageFromCurrentImageContext();
+//        //screenshot = [MainViewController imageWithImage:screenshot scaledToSize:self.fingerPainterBufDims];
+//        CVImageBufferRef fpb = [MainViewController pixelBufferFromCGImage:screenshot.CGImage];
+//        UIGraphicsEndImageContext();
+//        @synchronized(self.fingerPainter){
+//            if(self.fingerPainterBuf != nil){
+//                CVPixelBufferRelease(self.fingerPainterBuf);
+//                self.fingerPainterBuf = nil;
+//            }
+//            self.fingerPainterBuf = fpb;
+//        }
+//    }
 }
 
 - (CVImageBufferRef)vision:(PBJVision *)vision onBeforeEncodingVideoFrame:(CVImageBufferRef)imageBuffer frameSize:(CGSize)dims {
-    if(self.fingerPainterBufDims.width < 1){
-        self.fingerPainterBufDims = dims;
-        dispatch_async(dispatch_get_main_queue(), ^{
-            self.cs_fingerPainterW.constant = self.fingerPainterBufDims.width;
-            self.cs_fingerPainterH.constant = self.fingerPainterBufDims.height;
-        });
-    }
-    if(self.fingerPainterBuf != nil){
-        @synchronized(self.fingerPainter){
-            if(self.fingerPainterBuf != nil){
-                imageBuffer = self.fingerPainterBuf;
-            }
-        };
-    }
+//    if(self.fingerPainterBufDims.width < 1){
+//        self.fingerPainterBufDims = dims;
+//        dispatch_async(dispatch_get_main_queue(), ^{
+//            self.cs_fingerPainterW.constant = self.fingerPainterBufDims.width;
+//            self.cs_fingerPainterH.constant = self.fingerPainterBufDims.height;
+//        });
+//    }
+//    if(self.fingerPainterBuf != nil){
+//        @synchronized(self.fingerPainter){
+//            if(self.fingerPainterBuf != nil){
+//                imageBuffer = self.fingerPainterBuf;
+//            }
+//        };
+//    }
     CVPixelBufferRetain(imageBuffer);
     return imageBuffer;
 }
