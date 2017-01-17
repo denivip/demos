@@ -1,18 +1,14 @@
 //  Copyright (c) 2017 DENIVIP Group. All rights reserved.
 //
 
-// http://ax-comp.com/smooth-streaming-muxer-impl.html
 // http://www.w3.org/2013/12/byte-stream-format-registry/isobmff-byte-stream-format.html
-// Mp4Fragmenter Mp4Split FragmentCreatorTest
 // https://wikileaks.org/sony/docs/05/docs/DECE/TWG/2014/CFFMediaFormat-1.2_140605.txt
+// http://stackoverflow.com/questions/19974430/how-to-create-mfra-box-for-ismv-file-if-it-is-not-present
 
 // Data and examples
 // http://10.0.1.27:7000/index.mp4
 // http://www.mediacollege.com/video/format/mpeg4/videofilename.mp4
 // http://p.demo.flowplayer.netdna-cdn.com/vod/demo.flowplayer/bbb-800.mp4
-// https://wikileaks.org/sony/docs/05/docs/DECE/TWG/2014/CFFMediaFormat-1.2_140605.txt
-// http://stackoverflow.com/questions/19974430/how-to-create-mfra-box-for-ismv-file-if-it-is-not-present ???
-
 // ffprobe -probesize 500000 -loglevel error -show_format -show_streams http://10.0.1.27:7000/index.mp4
 
 #include <stdio.h>

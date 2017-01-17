@@ -120,7 +120,7 @@ static int ddLogLevel = LOG_LEVEL_WARN;
         //DDLogVerbose(@"HLSServer: started. URL=%@, options=%@", self.webServer.serverURL, options);
         [[NSNotificationCenter defaultCenter] postNotificationName:kNotfMessage object:self
                                                           userInfo:@{
-                                                                     @"message":[NSString stringWithFormat:@"%@ %@index.mp4",NSLocalizedString(@"Port opened. URL:", nil), self.webServer.serverURL]
+                                                                     @"message":[NSString stringWithFormat:@"%@ %@index.mp4",NSLocalizedString(@"URL:", nil), self.webServer.serverURL]
                                                                      }];
     }
 }

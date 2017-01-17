@@ -191,7 +191,7 @@ static void onRTCP(CFSocketRef s,
         if ([cmd caseInsensitiveCompare:@"options"] == NSOrderedSame)
         {
             response = [msg createResponse:200 text:@"OK"];
-            response = [response stringByAppendingString:@"Server: AVEncoderDemo/1.0\r\n"];
+            response = [response stringByAppendingString:@"Server: DemoRTSP/1.0\r\n"];
             response = [response stringByAppendingString:@"Public: DESCRIBE, SETUP, TEARDOWN, PLAY, OPTIONS\r\n\r\n"];
         }
         else if ([cmd caseInsensitiveCompare:@"describe"] == NSOrderedSame)

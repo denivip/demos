@@ -9,6 +9,7 @@
 #import "NSTimer+Blocks.h"
 #import "RTSPServer.h"
 #import "SmoothLineView.h"
+#import <CoreImage/CoreImage.h>
 
 __weak static PBJVision *weakvision;
 __weak static MainViewController *weakroot;
@@ -18,11 +19,15 @@ __weak static MainViewController *weakroot;
 
 @property (weak, nonatomic) IBOutlet UIView *previewView;
 @property (weak, nonatomic) IBOutlet UIButton *toggleStreaming;
+@property (weak, nonatomic) IBOutlet UIButton *toggleEffect;
+
 @property (weak, nonatomic) IBOutlet UIView *uisubsRoot;
 @property (strong, nonatomic) NSMutableArray* loglines;
+@property (strong, nonatomic) CIFilter* filter;
 @property (assign) double tapStartTs;
 @property (assign) double lastActionTs;
 @property (assign) int isRecording;
+@property (assign) int isEffectActive;
 @property (assign) int viewInitalized;
 @property (assign) float zoomingLevel;
 @property (assign) NSUInteger lastHandledVideoSeconds;
@@ -72,6 +77,9 @@ static int needStartCapture = 0;
    
     [self.toggleStreaming setAction:kUIButtonBlockTouchUpInside withBlock:^{
         [self switchRecordingState:1-self.isRecording];
+    }];
+    [self.toggleEffect setAction:kUIButtonBlockTouchUpInside withBlock:^{
+        [self switchEffectState:1-self.isEffectActive];
     }];
     
     [NSTimer scheduledTimerWithTimeInterval:1.0 block:^{
@@ -230,6 +238,13 @@ static int needStartCapture = 0;
     [self updateView];
 }
 
+- (void)switchEffectState:(int)newState {
+    self.lastActionTs = CACurrentMediaTime();
+    self.isEffectActive = newState;
+    [self updateView];
+    [self setStatusLog:self.isEffectActive>0?@"Effect enabled":@"Effect disabled" replace:NO];
+}
+
 - (void)switchRecordingState:(int)newState {
     self.lastActionTs = CACurrentMediaTime();
     self.isRecording = newState;
@@ -374,6 +389,17 @@ static int needStartCapture = 0;
 //            }
 //        };
 //    }
+    if(self.isEffectActive>0){
+        if(self.filter == nil){
+            self.filter = [CIFilter filterWithName:@"CIGaussianBlur"];
+            [self.filter setDefaults];
+            [self.filter setValue:@(10.0f) forKey:@"inputRadius"];
+        }
+        CIImage *result = [CIImage imageWithCVPixelBuffer:imageBuffer];
+        [self.filter setValue:result forKey:@"inputImage"];
+        CIContext * context = [CIContext contextWithOptions:nil];
+        [context render:self.filter.outputImage toCVPixelBuffer:imageBuffer];
+    }
     CVPixelBufferRetain(imageBuffer);
     return imageBuffer;
 }

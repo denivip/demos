@@ -9,7 +9,6 @@
 typedef void (^MuxCompletionBlock)(NSData* moov_dat, NSData* moof_dat);
 
 @interface FFReencoder : NSObject
-+(BOOL)recodeFileFrom:(NSString*)fromFile to:(NSString*)toFile withDuration:(double)expectedDuration withQuality:(int)quality;
 +(double)getSampleDuration:(CMSampleBufferRef)sampleBuffer;
 +(BOOL)muxVideoBuffer:(CBCircularData*)video audioBuffer:(CBCircularData*)audio completion:(MuxCompletionBlock)onok;
 @end
