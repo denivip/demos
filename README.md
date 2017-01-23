@@ -8,4 +8,4 @@ Features:
 - Hardware encoding (via VideoToolbox and AudioToolbox)
 - Real-time video effect over camera stream
 
-Read the article describing the tech behind these demos => http://blog.denivip.ru/index.php/2017/01/live-streaming-on-ios/?lang=en
+Read the [article describing the live streaming tech and these demos]: http://blog.denivip.ru/index.php/2017/01/live-streaming-on-ios/?lang=en
