@@ -2,16 +2,9 @@
 //
 
 // http://bento4.sourceforge.net/docs/html/index.html
+// https://github.com/axiomatic-systems/Bento4/blob/master/Source/C%2B%2B/Apps/Mp42Hls/Mp42Hls.cpp
+// https://github.com/axiomatic-systems/Bento4/blob/master/Source/C%2B%2B/Apps/Mp42Ts/Mp42Ts.cpp
 
-// http://www.w3.org/2013/12/byte-stream-format-registry/isobmff-byte-stream-format.html
-// https://wikileaks.org/sony/docs/05/docs/DECE/TWG/2014/CFFMediaFormat-1.2_140605.txt
-// http://stackoverflow.com/questions/19974430/how-to-create-mfra-box-for-ismv-file-if-it-is-not-present
-
-// Data and examples
-// http://10.0.1.27:7000/index.mp4
-// http://www.mediacollege.com/video/format/mpeg4/videofilename.mp4
-// http://p.demo.flowplayer.netdna-cdn.com/vod/demo.flowplayer/bbb-800.mp4
-// ffprobe -probesize 500000 -loglevel error -show_format -show_streams http://10.0.1.27:7000/index.mp4
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,7 +50,7 @@ SortSamples(SampleOrder* array, unsigned int n)
  |   AddAacTrack
  +---------------------------------------------------------------------*/
 static AP4_Track*
-AddAacTrack(AP4_Movie&            movie,
+AddAacTrack(AP4_Movie*            movie,
             const AP4_UI08* buffer, AP4_Size size,
             //SampleFileStorage&    sample_storage)
             AP4_MemoryByteStream& sample_storage)
@@ -164,10 +157,11 @@ AddAacTrack(AP4_Movie&            movie,
                                      "en",             // language
                                      0, 0);             // width, height
     
+    if(movie != NULL){
+        movie->AddTrack(track);
+    }
     // cleanup
     input->Release();
-    
-    movie.AddTrack(track);
     return track;
 }
 
@@ -175,7 +169,7 @@ AddAacTrack(AP4_Movie&            movie,
  |   AddH264Track
  +---------------------------------------------------------------------*/
 static AP4_Track*
-AddH264Track(AP4_Movie&            movie,
+AddH264Track(AP4_Movie*            movie,
              const AP4_UI08* buffer, AP4_Size size,
              AP4_Array<AP4_UI32>&  brands,
              //SampleFileStorage&    sample_storage
@@ -355,258 +349,331 @@ AddH264Track(AP4_Movie&            movie,
     
     // update the brands list
     brands.Append(AP4_FILE_BRAND_AVC1);
-    
+    if(movie != NULL){
+        movie->AddTrack(track);
+    }
     // cleanup
     input->Release();
-    
-    movie.AddTrack(track);
     return track;
 }
 
-static AP4_UI32 moofs_sequence_number = 1;// global!!! important (seq->unique)
-static AP4_UI64 moofs_duration = 0;
-int avMuxH264Aac(const AP4_UI08* vbuff, int64_t vbuff_len,
+
+/*----------------------------------------------------------------------
+ |   SampleReader
+ +---------------------------------------------------------------------*/
+class SampleReader
+{
+public:
+    virtual ~SampleReader() {}
+    virtual AP4_Result ReadSample(AP4_Sample& sample, AP4_DataBuffer& sample_data) = 0;
+};
+
+/*----------------------------------------------------------------------
+ |   TrackSampleReader
+ +---------------------------------------------------------------------*/
+class TrackSampleReader : public SampleReader
+{
+public:
+    TrackSampleReader(AP4_Track& track) : m_Track(track), m_SampleIndex(0) {}
+    AP4_Result ReadSample(AP4_Sample& sample, AP4_DataBuffer& sample_data);
+    
+private:
+    AP4_Track&  m_Track;
+    AP4_Ordinal m_SampleIndex;
+};
+
+/*----------------------------------------------------------------------
+ |   TrackSampleReader
+ +---------------------------------------------------------------------*/
+AP4_Result
+TrackSampleReader::ReadSample(AP4_Sample& sample, AP4_DataBuffer& sample_data)
+{
+    if (m_SampleIndex >= m_Track.GetSampleCount()) return AP4_ERROR_EOS;
+    return m_Track.ReadSample(m_SampleIndex++, sample, sample_data);
+}
+
+/*----------------------------------------------------------------------
+ |   ReadSample
+ +---------------------------------------------------------------------*/
+static AP4_Result
+ReadSample(SampleReader&   reader,
+           AP4_Track&      track,
+           AP4_Sample&     sample,
+           AP4_DataBuffer& sample_data,
+           double&         ts,
+           bool&           eos)
+{
+    AP4_Result result = reader.ReadSample(sample, sample_data);
+    if (AP4_FAILED(result)) {
+        if (result == AP4_ERROR_EOS) {
+            eos = true;
+        } else {
+            return result;
+        }
+    }
+    ts = (double)sample.GetDts()/(double)track.GetMediaTimeScale();
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
+ |   WriteSamples
+ +---------------------------------------------------------------------*/
+static AP4_Result
+WriteSamples(AP4_ByteStream*                  output,
+             AP4_Mpeg2TsWriter&               writer,
+             AP4_Track*                       audio_track,
+             SampleReader*                    audio_reader,
+             AP4_Mpeg2TsWriter::SampleStream* audio_stream,
+             AP4_Track*                       video_track,
+             SampleReader*                    video_reader,
+             AP4_Mpeg2TsWriter::SampleStream* video_stream)
+{
+    AP4_Sample        audio_sample;
+    AP4_DataBuffer    audio_sample_data;
+    unsigned int      audio_sample_count = 0;
+    double            audio_ts = 0.0;
+    bool              audio_eos = false;
+    AP4_Sample        video_sample;
+    AP4_DataBuffer    video_sample_data;
+    unsigned int      video_sample_count = 0;
+    double            video_ts = 0.0;
+    bool              video_eos = false;
+    AP4_Result        result = AP4_SUCCESS;
+    AP4_Array<double> segment_durations;
+    
+    // prime the samples
+    if (audio_reader) {
+        result = ReadSample(*audio_reader, *audio_track, audio_sample, audio_sample_data, audio_ts, audio_eos);
+        if (AP4_FAILED(result)) return result;
+    }
+    if (video_reader) {
+        result = ReadSample(*video_reader, *video_track, video_sample, video_sample_data, video_ts, video_eos);
+        if (AP4_FAILED(result)) return result;
+    }
+    bool isPATsWritten = false;
+    for (;;) {
+        bool sync_sample = false;
+        AP4_Track* chosen_track= NULL;
+        if (audio_track && !audio_eos) {
+            chosen_track = audio_track;
+            if (video_track == NULL) sync_sample = true;
+        }
+        if (video_track && !video_eos) {
+            if (audio_track) {
+                if (video_ts <= audio_ts) {
+                    chosen_track = video_track;
+                }
+            } else {
+                chosen_track = video_track;
+            }
+            if (chosen_track == video_track && video_sample.IsSync()) {
+                sync_sample = true;
+            }
+        }
+        if (chosen_track == NULL) break;
+        
+        // check if we need to start a new segment
+//        if (Options.segment_duration && sync_sample) {
+//            if (video_track) {
+//                segment_duration = video_ts - last_ts;
+//            } else {
+//                segment_duration = audio_ts - last_ts;
+//            }
+//            if (segment_duration >= (double)Options.segment_duration - (double)segment_duration_threshold/1000.0) {
+//                if (video_track) {
+//                    last_ts = video_ts;
+//                } else {
+//                    last_ts = audio_ts;
+//                }
+//                if (output) {
+//                    segment_durations.Append(segment_duration);
+//                    if (Options.verbose) {
+//                        printf("Segment %d, duration=%.2f, %d audio samples, %d video samples\n",
+//                               segment_number,
+//                               segment_duration,
+//                               audio_sample_count,
+//                               video_sample_count);
+//                    }
+//                    output->Release();
+//                    output = NULL;
+//                    ++segment_number;
+//                    audio_sample_count = 0;
+//                    video_sample_count = 0;
+//                }
+//            }
+//        }
+        if(!isPATsWritten){
+            writer.WritePAT(*output);
+            writer.WritePMT(*output);
+        }
+        
+        // write the samples out and advance to the next sample
+        if (chosen_track == audio_track) {
+            result = audio_stream->WriteSample(audio_sample,
+                                               audio_sample_data,
+                                               audio_track->GetSampleDescription(audio_sample.GetDescriptionIndex()),
+                                               video_track==NULL,
+                                               *output);
+            if (AP4_FAILED(result)) return result;
+            
+            result = ReadSample(*audio_reader, *audio_track, audio_sample, audio_sample_data, audio_ts, audio_eos);
+            if (AP4_FAILED(result)) return result;
+            ++audio_sample_count;
+        } else if (chosen_track == video_track) {
+            result = video_stream->WriteSample(video_sample,
+                                               video_sample_data,
+                                               video_track->GetSampleDescription(video_sample.GetDescriptionIndex()),
+                                               true,
+                                               *output);
+            if (AP4_FAILED(result)) return result;
+            
+            result = ReadSample(*video_reader, *video_track, video_sample, video_sample_data, video_ts, video_eos);
+            if (AP4_FAILED(result)) return result;
+            ++video_sample_count;
+        } else {
+            break;
+        }
+    }
+
+    return result;
+}
+
+int avMuxH264AacTS(const AP4_UI08* vbuff, int64_t vbuff_len,
                  const AP4_UI08* abuff, int64_t abuff_len,
                  void** moov_outbuff, int64_t* moov_outbuff_len,
                  void** moof_outbuff, int64_t* moof_outbuff_len) {
     
+    int Options_pmt_pid                    = 0x100;
+    int Options_audio_pid                  = 0x101;
+    int Options_video_pid                  = 0x102;
+    AP4_Result result = AP4_SUCCESS;
     // create the movie object to hold the tracks
-    AP4_Movie* input_movie = new AP4_Movie();
+    //AP4_Movie* input_movie = new AP4_Movie();
     
     // setup the brands
     AP4_Array<AP4_UI32> brands;
     brands.Append(AP4_FILE_BRAND_ISOM);
     brands.Append(AP4_FILE_BRAND_MP42);
-    
-// create a temp file to store the sample data
-//SampleFileStorage* sample_storage = NULL;
-//AP4_Result result = SampleFileStorage::Create(output_filename, sample_storage);
-//if (AP4_FAILED(result)) {
-//    fprintf(stderr, "ERROR: failed to create temporary sample data storage (%d)\n", result);
-//    return 1;
-//}
+
     AP4_MemoryByteStream* sample_storage = new AP4_MemoryByteStream();
-    
-    AP4_Track* vtrack = NULL;
-    AP4_Track* atrack = NULL;
-    // add all the tracks
+    AP4_Track* video_track = NULL;
+    AP4_Track* audio_track = NULL;
     if(vbuff_len > 0){
-        vtrack = AddH264Track(*input_movie, vbuff, (AP4_Size)vbuff_len, brands, *sample_storage);
+        video_track = AddH264Track(NULL/*input_movie*/, vbuff, (AP4_Size)vbuff_len, brands, *sample_storage);
     }
     if(abuff_len > 0){
-        atrack = AddAacTrack(*input_movie, abuff, (AP4_Size)abuff_len, *sample_storage);
+        audio_track = AddAacTrack(NULL/*input_movie*/, abuff, (AP4_Size)abuff_len, *sample_storage);
+    }
+    // open the output
+    AP4_ByteStream* output = NULL;
+    output = new AP4_MemoryByteStream();
+    AP4_Mpeg2TsWriter writer(Options_pmt_pid);
+    AP4_Mpeg2TsWriter::SampleStream* audio_stream = NULL;
+    AP4_Mpeg2TsWriter::SampleStream* video_stream = NULL;
+    AP4_SampleDescription* sample_description;
+    SampleReader*     audio_reader  = NULL;
+    SampleReader*     video_reader  = NULL;
+    if (audio_track) {
+        audio_reader = new TrackSampleReader(*audio_track);
+    }
+    if (video_track) {
+        video_reader = new TrackSampleReader(*video_track);
     }
     
-//     ----- simple mp4
-//    // open the output
-//    AP4_ByteStream* output = NULL;
-//    //result = AP4_FileByteStream::Create(output_filename, AP4_FileByteStream::STREAM_MODE_WRITE, output);
-//    //if (AP4_FAILED(result)) {
-//        //fprintf(stderr, "ERROR: cannot open output '%s' (%d)\n", output_filename, result);
-//        //delete sample_storage;
-//    //    return 1;
-//    //}
-//    output = new AP4_MemoryByteStream();
-//    
-//    // create a multimedia file
-//    AP4_File file(movie);
-//    
-//    // set the file type
-//    file.SetFileType(AP4_FILE_BRAND_MP42, 1, &brands[0], brands.ItemCount());
-//    
-//    // write the file to the output
-//    AP4_FileWriter::Write(file, *output);
-//
-//    AP4_LargeSize size;
-//    output->GetSize(size);
-//    output->Seek(0);
-//    *outbuff = malloc((size_t)size);
-//    output->Read(*outbuff, (AP4_Size)size);
-//    *outbuff_len = size;
-//    
-//    // cleanup
-//    sample_storage->Release();
-//    output->Release();
-    
-    AP4_Movie* output_movie = new AP4_Movie(AP4_MUX_TIMESCALE);
-    
-    AP4_Result result;
-    AP4_ByteStream* moov_output = NULL;
-    moov_output = new AP4_MemoryByteStream();
-    
-    AP4_ByteStream* moof_output = NULL;
-    moof_output = new AP4_MemoryByteStream();
-    
-    AP4_Track* tracks[2];
-    tracks[0] = vtrack;
-    tracks[1] = atrack;
-    
-    AP4_MoovAtom* moov = output_movie->GetMoovAtom();
-    AP4_ContainerAtom* mvex = new AP4_ContainerAtom(AP4_ATOM_TYPE_MVEX);
-    AP4_MehdAtom*      mehd = new AP4_MehdAtom(0);
-    mvex->AddChild(mehd);
-    
-    for(int i=0;i<2;i++){
-        AP4_Track* track = tracks[i];
-        
-        // create a sample table (with no samples) to hold the sample description
-        AP4_SyntheticSampleTable* sample_table = new AP4_SyntheticSampleTable();
-        for (unsigned int j=0; j<track->GetSampleDescriptionCount(); j++) {
-            AP4_SampleDescription* sample_description = track->GetSampleDescription(j);
-            sample_table->AddSampleDescription(sample_description, false);
+    // add the audio stream
+    if (audio_track) {
+        sample_description = audio_track->GetSampleDescription(0);
+        if (sample_description == NULL) {
+            printf("ERROR: unable to parse audio sample description\n");
+            goto end;
         }
         
-        // create the track
-        AP4_UI64 duration = 0;//AP4_ConvertTime(track->GetDuration(),input_movie->GetTimeScale(),AP4_MUX_TIMESCALE);
-        AP4_Track* output_track = new AP4_Track(sample_table,
-                                                track->GetId(),
-                                                AP4_MUX_TIMESCALE,
-                                                duration,
-                                                track->GetMediaTimeScale(),
-                                                duration,
-                                                track);
-        output_movie->AddTrack(output_track);
-        AP4_TrexAtom* trex = new AP4_TrexAtom(track->GetId(),
-                                              1,
-                                              0,
-                                              0,
-                                              0);
-        mvex->AddChild(trex);
+        unsigned int stream_type = 0;
+        unsigned int stream_id   = 0;
+        if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_MP4A) {
+            stream_type = AP4_MPEG2_STREAM_TYPE_ISO_IEC_13818_7;
+            stream_id   = AP4_MPEG2_TS_DEFAULT_STREAM_ID_AUDIO;
+        } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AC_3 ||
+                   sample_description->GetFormat() == AP4_SAMPLE_FORMAT_EC_3) {
+            stream_type = AP4_MPEG2_STREAM_TYPE_ATSC_AC3;
+            stream_id   = AP4_MPEG2_TS_STREAM_ID_PRIVATE_STREAM_1;
+        } else {
+            printf("ERROR: audio codec not supported\n");
+            return 1;
+        }
+        
+        result = writer.SetAudioStream(audio_track->GetMediaTimeScale(),
+                                       stream_type,
+                                       stream_id,
+                                       audio_stream,
+                                       Options_audio_pid);
+        if (AP4_FAILED(result)) {
+            printf("could not create audio stream (%d)\n", result);
+            goto end;
+        }
     }
     
-    // add the mvex container to the moov container
-    // real duration: Unknown (infinite)
-    //mehd->SetDuration(movie->GetDuration());
-    //mehd->SetDuration(0xffffffff);
-    mehd->SetDuration(0);
-    moov->AddChild(mvex);
-    
-    AP4_FtypAtom* ftyp = NULL;
-    ftyp = new AP4_FtypAtom(AP4_FTYP_BRAND_MP42, 1, &brands[0], brands.ItemCount());
-    ftyp->Write(*moov_output);
-    delete ftyp;
-    moov->Write(*moov_output);
-    
-    // create moof payload
-    for(int i=0;i<2;i++){
-        AP4_Track* track = tracks[i];
-        
-        // setup the moof structure
-        AP4_ContainerAtom* moof = new AP4_ContainerAtom(AP4_ATOM_TYPE_MOOF);
-        AP4_MfhdAtom* mfhd = new AP4_MfhdAtom(moofs_sequence_number++);
-        moof->AddChild(mfhd);
-        
-        unsigned int sample_desc_index = 0;//cursor->m_Sample.GetDescriptionIndex();
-        unsigned int tfhd_flags = AP4_TFHD_FLAG_DEFAULT_BASE_IS_MOOF;
-        if (sample_desc_index > 0) {
-            tfhd_flags |= AP4_TFHD_FLAG_SAMPLE_DESCRIPTION_INDEX_PRESENT;
-        }
-        if(track == vtrack){
-            tfhd_flags |= AP4_TFHD_FLAG_DEFAULT_SAMPLE_FLAGS_PRESENT;
-        }
-        AP4_ContainerAtom* traf = new AP4_ContainerAtom(AP4_ATOM_TYPE_TRAF);
-        AP4_TfhdAtom* tfhd = new AP4_TfhdAtom(tfhd_flags,
-                                              track->GetId(),
-                                              0,
-                                              sample_desc_index+1,
-                                              0,
-                                              0,
-                                              0);
-        if (tfhd_flags & AP4_TFHD_FLAG_DEFAULT_SAMPLE_FLAGS_PRESENT) {
-            tfhd->SetDefaultSampleFlags(0x1010000); // sample_is_non_sync_sample=1, sample_depends_on=1 (not I frame)
-        }
-        traf->AddChild(tfhd);
-    
-        AP4_TfdtAtom* tfdt = new AP4_TfdtAtom(1, moofs_duration);
-        traf->AddChild(tfdt);
-        
-        AP4_UI32 trun_flags = AP4_TRUN_FLAG_DATA_OFFSET_PRESENT | AP4_TRUN_FLAG_SAMPLE_DURATION_PRESENT | AP4_TRUN_FLAG_SAMPLE_SIZE_PRESENT;
-        AP4_UI32 first_sample_flags = 0;
-        if(track == vtrack){
-            trun_flags |= AP4_TRUN_FLAG_FIRST_SAMPLE_FLAGS_PRESENT;
-            first_sample_flags = 0x2000000; // sample_depends_on=2 (I frame)
-        }
-        AP4_TrunAtom* trun = new AP4_TrunAtom(trun_flags, 0, first_sample_flags);
-        traf->AddChild(trun);
-        moof->AddChild(traf);
-    
-        AP4_Array<AP4_Sample> m_SampleIndexes;
-        unsigned int sample_count = 0;
-        AP4_Array<AP4_TrunAtom::Entry> trun_entries;
-        AP4_UI32 m_MdatSize = AP4_ATOM_HEADER_SIZE;
-        AP4_UI32 m_Duration = 0;
-
-        for(int j=0;j<track->GetSampleCount();j++){
-            AP4_Sample* m_Sample;
-            
-            m_SampleIndexes.SetItemCount(sample_count+1);
-            track->GetSample(j,m_SampleIndexes[sample_count]);
-            m_Sample = &m_SampleIndexes[sample_count];
-            
-            if (m_Sample->GetCtsDelta()) {
-                trun->SetFlags(trun->GetFlags() | AP4_TRUN_FLAG_SAMPLE_COMPOSITION_TIME_OFFSET_PRESENT);
-            }
-            // add one sample
-            trun_entries.SetItemCount(sample_count+1);
-            AP4_TrunAtom::Entry& trun_entry           = trun_entries[sample_count];
-            trun_entry.sample_duration                = m_Sample->GetDuration();
-            trun_entry.sample_size                    = m_Sample->GetSize();
-            trun_entry.sample_composition_time_offset = m_Sample->GetCtsDelta();
-            
-            m_MdatSize += trun_entry.sample_size;
-            m_Duration += trun_entry.sample_duration;
-            sample_count++;
-        }
-        trun->SetEntries(trun_entries);
-        trun->SetDataOffset((AP4_UI32)moof->GetSize()+AP4_ATOM_HEADER_SIZE);
-        if(track == vtrack){
-            moofs_duration += m_Duration;
-        }
-        moof->Write(*moof_output);
-        moof_output->WriteUI32(m_MdatSize);
-        moof_output->WriteUI32(AP4_ATOM_TYPE_MDAT);
-        AP4_DataBuffer sample_data;
-        AP4_Sample     sample;
-        for (unsigned int i=0; i<m_SampleIndexes.ItemCount(); i++) {
-            AP4_Sample& sample = m_SampleIndexes[i];
-            result = sample.ReadData(sample_data);
-            if (AP4_FAILED(result)) {
-                fprintf(stderr, "ERROR: failed to read sample data for sample %d (%d)\n", i, result);
-                continue;
-            }
-            result = moof_output->Write(sample_data.GetData(), sample_data.GetDataSize());
-            if (AP4_FAILED(result)) {
-                fprintf(stderr, "ERROR: failed to write sample data (%d)\n", result);
-                continue;
-            }
+    // add the video stream
+    if (video_track) {
+        sample_description = video_track->GetSampleDescription(0);
+        if (sample_description == NULL) {
+            printf("ERROR: unable to parse video sample description\n");
+            goto end;
         }
         
-        //AP4_ContainerAtom mfra(AP4_ATOM_TYPE_MFRA);
-        //AP4_MfroAtom* mfro = new AP4_MfroAtom((AP4_UI32)mfra.GetSize()+16);
-        //mfra.AddChild(mfro);
-        //mfra.Write(*moof_output);
-        
-        for (unsigned int i=0; i<m_SampleIndexes.ItemCount(); i++) {
-            AP4_Sample& sample = m_SampleIndexes[i];
-            sample.Reset();
+        // decide on the stream type
+        unsigned int stream_type = 0;
+        unsigned int stream_id   = AP4_MPEG2_TS_DEFAULT_STREAM_ID_VIDEO;
+        if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC1 ||
+            sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC2 ||
+            sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC3 ||
+            sample_description->GetFormat() == AP4_SAMPLE_FORMAT_AVC4) {
+            stream_type = AP4_MPEG2_STREAM_TYPE_AVC;
+        } else if (sample_description->GetFormat() == AP4_SAMPLE_FORMAT_HEV1 ||
+                   sample_description->GetFormat() == AP4_SAMPLE_FORMAT_HVC1) {
+            stream_type = AP4_MPEG2_STREAM_TYPE_HEVC;
+        } else {
+            printf("ERROR: video codec not supported\n");
+            return 1;
         }
-        m_SampleIndexes.Clear();
+        result = writer.SetVideoStream(video_track->GetMediaTimeScale(),
+                                       stream_type,
+                                       stream_id,
+                                       video_stream,
+                                       Options_video_pid);
+        if (AP4_FAILED(result)) {
+            printf("could not create video stream (%d)\n", result);
+            goto end;
+        }
     }
+    result = WriteSamples(output, writer,
+                          audio_track, audio_reader, audio_stream,
+                          video_track, video_reader, video_stream);
+    
+    /*
+    // create a multimedia file
+    AP4_File file(input_movie);
+    // set the file type
+    file.SetFileType(AP4_FILE_BRAND_MP42, 1, &brands[0], brands.ItemCount());
+    // write the file to the output
+    AP4_FileWriter::Write(file, *output);
+    */
     
     AP4_LargeSize size;
-    moov_output->GetSize(size);
-    moov_output->Seek(0);
-    *moov_outbuff = malloc((size_t)size);
-    moov_output->Read(*moov_outbuff, (AP4_Size)size);
-    *moov_outbuff_len = size;
-    
-    moof_output->GetSize(size);
-    moof_output->Seek(0);
+    output->GetSize(size);
+    output->Seek(0);
     *moof_outbuff = malloc((size_t)size);
-    moof_output->Read(*moof_outbuff, (AP4_Size)size);
+    output->Read(*moof_outbuff, (AP4_Size)size);
     *moof_outbuff_len = size;
     
-    moov_output->Release();
-    moof_output->Release();
-    return 0;
+end:
+    *moov_outbuff = NULL;
+    *moov_outbuff_len = 0;
+
+    // cleanup
+    sample_storage->Release();
+    output->Release();
+    
+    return result;
 }

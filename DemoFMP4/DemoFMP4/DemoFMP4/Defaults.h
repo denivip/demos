@@ -43,7 +43,7 @@ static NSString* FMP4_EXTENSION = @"mp4";//@"ismv";
 #define kStreamFileReadBufferSize (128 * 1024)
 #define kChunkedFileReadBufferSize (200 * 1024)
 #define kChunkedFileWait4DataDelay 0.1
-#define kChunkedFileMinChunkLenSec 2.0
+#define kChunkedFileMinChunkLenSec 5.0
 
 // FFmpeg-IOS = http://sourceforge.net/projects/ffmpeg-ios/?source=typ_redirect
 // FFmpeg-IOS = $(FFMPEG_PATH)/include/ FFMPEG_PATH=$(PROJECT_DIR)/../FFmpeg-IOS

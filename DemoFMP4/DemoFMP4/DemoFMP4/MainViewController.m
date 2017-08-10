@@ -229,7 +229,7 @@ static int needStartCapture = 0;
                 return;
             }
             NSError *error;
-            NSString *fileName = [NSString stringWithFormat:@"tst%f.mov", [[NSDate date] timeIntervalSince1970]];
+            NSString *fileName = [NSString stringWithFormat:@"tst%f.ts", [[NSDate date] timeIntervalSince1970]];
             NSURL *directoryURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]] isDirectory:YES];
             [[NSFileManager defaultManager] createDirectoryAtURL:directoryURL withIntermediateDirectories:YES attributes:nil error:&error];
             if (error) {
@@ -255,7 +255,7 @@ static int needStartCapture = 0;
 }
 
 - (void)documentPicker:(UIDocumentPickerViewController *)controller didPickDocumentAtURL:(NSURL *)url {
-    [self setStatusLog:@"MP4 saved" replace:NO];
+    [self setStatusLog:@"TS saved" replace:NO];
 }
 
 - (void)updateView {
@@ -334,17 +334,16 @@ static int needStartCapture = 0;
         self.prevFlushedChunkTs = ts;
         [FFReencoder muxVideoBuffer:video audioBuffer:audio completion:^(NSData* moov_dat, NSData* moof_dat){
             @synchronized (self) {
-                if(self.currentMP4 == nil){
-                    self.currentMP4 = [[NSMutableData alloc] init];
+                //if(self.currentMP4 == nil){
+                self.currentMP4 = [[NSMutableData alloc] init];
+                if(moov_dat != nil){
                     [self.currentMP4 appendData:moov_dat];
-                };
-                [self.currentMP4 appendData:moof_dat];
+                }
+                //};
+                if(moof_dat != nil){
+                    [self.currentMP4 appendData:moof_dat];
+                }
             };
-            //HLSServer* srv = [HLSServer sharedInstance];
-            //srv.liveEncodedTsHeader = moov_dat;
-            //[HLSServer bumpNetworkStatsBytesIn:[moof_dat length] bytesOut:0];
-            //NSUInteger recentChunkOffset = [srv.liveEncodedTsBuffer writeData:moof_dat];
-            //srv.liveEncodedTsBufferOffset = recentChunkOffset;
         }];
         return YES;
     }

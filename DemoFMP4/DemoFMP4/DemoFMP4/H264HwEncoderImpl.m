@@ -3,7 +3,7 @@
 
 #import <Foundation/Foundation.h>
 #import "H264HwEncoderImpl.h"
-#include "muxer_mp4.h"
+#include "muxers.h"
 
 static const int kSamplesPerFrame = 1024;
 static const int kAACFrequency = 44100;

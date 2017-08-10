@@ -33,7 +33,11 @@
 
 - (void)removeAll {
     @synchronized(self.buffers) {
-        self.buffers = [[NSMutableArray alloc] initWithCapacity:100];
+        if(self.buffers == nil){
+            self.buffers = [[NSMutableArray alloc] initWithCapacity:100];
+        }else{
+            [self.buffers removeAllObjects];
+        }
         self.curTotalSize = 0;
         self.baseOffset = 0;
     }
