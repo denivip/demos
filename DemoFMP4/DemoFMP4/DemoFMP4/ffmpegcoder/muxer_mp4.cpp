@@ -397,214 +397,22 @@ int avMuxH264Aac(const AP4_UI08* vbuff, int64_t vbuff_len,
         atrack = AddAacTrack(*input_movie, abuff, (AP4_Size)abuff_len, *sample_storage);
     }
     
-//     ----- simple mp4
-//    // open the output
-//    AP4_ByteStream* output = NULL;
-//    //result = AP4_FileByteStream::Create(output_filename, AP4_FileByteStream::STREAM_MODE_WRITE, output);
-//    //if (AP4_FAILED(result)) {
-//        //fprintf(stderr, "ERROR: cannot open output '%s' (%d)\n", output_filename, result);
-//        //delete sample_storage;
-//    //    return 1;
-//    //}
-//    output = new AP4_MemoryByteStream();
-//    
-//    // create a multimedia file
-//    AP4_File file(movie);
-//    
-//    // set the file type
-//    file.SetFileType(AP4_FILE_BRAND_MP42, 1, &brands[0], brands.ItemCount());
-//    
-//    // write the file to the output
-//    AP4_FileWriter::Write(file, *output);
-//
-//    AP4_LargeSize size;
-//    output->GetSize(size);
-//    output->Seek(0);
-//    *outbuff = malloc((size_t)size);
-//    output->Read(*outbuff, (AP4_Size)size);
-//    *outbuff_len = size;
-//    
-//    // cleanup
-//    sample_storage->Release();
-//    output->Release();
-    
-    AP4_Movie* output_movie = new AP4_Movie(AP4_MUX_TIMESCALE);
-    
-    AP4_Result result;
-    AP4_ByteStream* moov_output = NULL;
-    moov_output = new AP4_MemoryByteStream();
-    
-    AP4_ByteStream* moof_output = NULL;
-    moof_output = new AP4_MemoryByteStream();
-    
-    AP4_Track* tracks[2];
-    tracks[0] = vtrack;
-    tracks[1] = atrack;
-    
-    AP4_MoovAtom* moov = output_movie->GetMoovAtom();
-    AP4_ContainerAtom* mvex = new AP4_ContainerAtom(AP4_ATOM_TYPE_MVEX);
-    AP4_MehdAtom*      mehd = new AP4_MehdAtom(0);
-    mvex->AddChild(mehd);
-    
-    for(int i=0;i<2;i++){
-        AP4_Track* track = tracks[i];
-        
-        // create a sample table (with no samples) to hold the sample description
-        AP4_SyntheticSampleTable* sample_table = new AP4_SyntheticSampleTable();
-        for (unsigned int j=0; j<track->GetSampleDescriptionCount(); j++) {
-            AP4_SampleDescription* sample_description = track->GetSampleDescription(j);
-            sample_table->AddSampleDescription(sample_description, false);
-        }
-        
-        // create the track
-        AP4_UI64 duration = 0;//AP4_ConvertTime(track->GetDuration(),input_movie->GetTimeScale(),AP4_MUX_TIMESCALE);
-        AP4_Track* output_track = new AP4_Track(sample_table,
-                                                track->GetId(),
-                                                AP4_MUX_TIMESCALE,
-                                                duration,
-                                                track->GetMediaTimeScale(),
-                                                duration,
-                                                track);
-        output_movie->AddTrack(output_track);
-        AP4_TrexAtom* trex = new AP4_TrexAtom(track->GetId(),
-                                              1,
-                                              0,
-                                              0,
-                                              0);
-        mvex->AddChild(trex);
-    }
-    
-    // add the mvex container to the moov container
-    // real duration: Unknown (infinite)
-    //mehd->SetDuration(movie->GetDuration());
-    //mehd->SetDuration(0xffffffff);
-    mehd->SetDuration(0);
-    moov->AddChild(mvex);
-    
-    AP4_FtypAtom* ftyp = NULL;
-    ftyp = new AP4_FtypAtom(AP4_FTYP_BRAND_MP42, 1, &brands[0], brands.ItemCount());
-    ftyp->Write(*moov_output);
-    delete ftyp;
-    moov->Write(*moov_output);
-    
-    // create moof payload
-    for(int i=0;i<2;i++){
-        AP4_Track* track = tracks[i];
-        
-        // setup the moof structure
-        AP4_ContainerAtom* moof = new AP4_ContainerAtom(AP4_ATOM_TYPE_MOOF);
-        AP4_MfhdAtom* mfhd = new AP4_MfhdAtom(moofs_sequence_number++);
-        moof->AddChild(mfhd);
-        
-        unsigned int sample_desc_index = 0;//cursor->m_Sample.GetDescriptionIndex();
-        unsigned int tfhd_flags = AP4_TFHD_FLAG_DEFAULT_BASE_IS_MOOF;
-        if (sample_desc_index > 0) {
-            tfhd_flags |= AP4_TFHD_FLAG_SAMPLE_DESCRIPTION_INDEX_PRESENT;
-        }
-        if(track == vtrack){
-            tfhd_flags |= AP4_TFHD_FLAG_DEFAULT_SAMPLE_FLAGS_PRESENT;
-        }
-        AP4_ContainerAtom* traf = new AP4_ContainerAtom(AP4_ATOM_TYPE_TRAF);
-        AP4_TfhdAtom* tfhd = new AP4_TfhdAtom(tfhd_flags,
-                                              track->GetId(),
-                                              0,
-                                              sample_desc_index+1,
-                                              0,
-                                              0,
-                                              0);
-        if (tfhd_flags & AP4_TFHD_FLAG_DEFAULT_SAMPLE_FLAGS_PRESENT) {
-            tfhd->SetDefaultSampleFlags(0x1010000); // sample_is_non_sync_sample=1, sample_depends_on=1 (not I frame)
-        }
-        traf->AddChild(tfhd);
-    
-        AP4_TfdtAtom* tfdt = new AP4_TfdtAtom(1, moofs_duration);
-        traf->AddChild(tfdt);
-        
-        AP4_UI32 trun_flags = AP4_TRUN_FLAG_DATA_OFFSET_PRESENT | AP4_TRUN_FLAG_SAMPLE_DURATION_PRESENT | AP4_TRUN_FLAG_SAMPLE_SIZE_PRESENT;
-        AP4_UI32 first_sample_flags = 0;
-        if(track == vtrack){
-            trun_flags |= AP4_TRUN_FLAG_FIRST_SAMPLE_FLAGS_PRESENT;
-            first_sample_flags = 0x2000000; // sample_depends_on=2 (I frame)
-        }
-        AP4_TrunAtom* trun = new AP4_TrunAtom(trun_flags, 0, first_sample_flags);
-        traf->AddChild(trun);
-        moof->AddChild(traf);
-    
-        AP4_Array<AP4_Sample> m_SampleIndexes;
-        unsigned int sample_count = 0;
-        AP4_Array<AP4_TrunAtom::Entry> trun_entries;
-        AP4_UI32 m_MdatSize = AP4_ATOM_HEADER_SIZE;
-        AP4_UI32 m_Duration = 0;
-
-        for(int j=0;j<track->GetSampleCount();j++){
-            AP4_Sample* m_Sample;
-            
-            m_SampleIndexes.SetItemCount(sample_count+1);
-            track->GetSample(j,m_SampleIndexes[sample_count]);
-            m_Sample = &m_SampleIndexes[sample_count];
-            
-            if (m_Sample->GetCtsDelta()) {
-                trun->SetFlags(trun->GetFlags() | AP4_TRUN_FLAG_SAMPLE_COMPOSITION_TIME_OFFSET_PRESENT);
-            }
-            // add one sample
-            trun_entries.SetItemCount(sample_count+1);
-            AP4_TrunAtom::Entry& trun_entry           = trun_entries[sample_count];
-            trun_entry.sample_duration                = m_Sample->GetDuration();
-            trun_entry.sample_size                    = m_Sample->GetSize();
-            trun_entry.sample_composition_time_offset = m_Sample->GetCtsDelta();
-            
-            m_MdatSize += trun_entry.sample_size;
-            m_Duration += trun_entry.sample_duration;
-            sample_count++;
-        }
-        trun->SetEntries(trun_entries);
-        trun->SetDataOffset((AP4_UI32)moof->GetSize()+AP4_ATOM_HEADER_SIZE);
-        if(track == vtrack){
-            moofs_duration += m_Duration;
-        }
-        moof->Write(*moof_output);
-        moof_output->WriteUI32(m_MdatSize);
-        moof_output->WriteUI32(AP4_ATOM_TYPE_MDAT);
-        AP4_DataBuffer sample_data;
-        AP4_Sample     sample;
-        for (unsigned int i=0; i<m_SampleIndexes.ItemCount(); i++) {
-            AP4_Sample& sample = m_SampleIndexes[i];
-            result = sample.ReadData(sample_data);
-            if (AP4_FAILED(result)) {
-                fprintf(stderr, "ERROR: failed to read sample data for sample %d (%d)\n", i, result);
-                continue;
-            }
-            result = moof_output->Write(sample_data.GetData(), sample_data.GetDataSize());
-            if (AP4_FAILED(result)) {
-                fprintf(stderr, "ERROR: failed to write sample data (%d)\n", result);
-                continue;
-            }
-        }
-        
-        //AP4_ContainerAtom mfra(AP4_ATOM_TYPE_MFRA);
-        //AP4_MfroAtom* mfro = new AP4_MfroAtom((AP4_UI32)mfra.GetSize()+16);
-        //mfra.AddChild(mfro);
-        //mfra.Write(*moof_output);
-        
-        for (unsigned int i=0; i<m_SampleIndexes.ItemCount(); i++) {
-            AP4_Sample& sample = m_SampleIndexes[i];
-            sample.Reset();
-        }
-        m_SampleIndexes.Clear();
-    }
+    // create a multimedia file
+    AP4_File file(input_movie);
+    // set the file type
+    file.SetFileType(AP4_FILE_BRAND_MP42, 1, &brands[0], brands.ItemCount());
+    // write the file to the output
+    AP4_FileWriter::Write(file, *output);
     
     AP4_LargeSize size;
-    moov_output->GetSize(size);
-    moov_output->Seek(0);
-    *moov_outbuff = malloc((size_t)size);
-    moov_output->Read(*moov_outbuff, (AP4_Size)size);
-    *moov_outbuff_len = size;
-    
-    moof_output->GetSize(size);
-    moof_output->Seek(0);
+    output->GetSize(size);
+    output->Seek(0);
     *moof_outbuff = malloc((size_t)size);
-    moof_output->Read(*moof_outbuff, (AP4_Size)size);
+    output->Read(*moof_outbuff, (AP4_Size)size);
     *moof_outbuff_len = size;
+
+    *moov_outbuff = NULL;
+    *moov_outbuff_len = 0;
     
     moov_output->Release();
     moof_output->Release();
