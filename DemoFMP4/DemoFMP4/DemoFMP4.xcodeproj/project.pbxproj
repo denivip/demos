@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		30087B5D1B5016620017F3E8 /* GCDWebServerFileChunkedResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 30087B5C1B5016620017F3E8 /* GCDWebServerFileChunkedResponse.m */; };
-		300B90861A9C9C7C00B0EC2D /* GCDWebServerFileStreamResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 300B90851A9C9C7C00B0EC2D /* GCDWebServerFileStreamResponse.m */; };
 		301D89A01A9489F300840B20 /* GCDWebServer.m in Sources */ = {isa = PBXBuildFile; fileRef = 301D89831A9489F300840B20 /* GCDWebServer.m */; };
 		301D89A11A9489F300840B20 /* GCDWebServerConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 301D89851A9489F300840B20 /* GCDWebServerConnection.m */; };
 		301D89A21A9489F300840B20 /* GCDWebServerFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = 301D89871A9489F300840B20 /* GCDWebServerFunctions.m */; };
@@ -23,7 +21,6 @@
 		301D89AB1A9489F300840B20 /* GCDWebServerFileResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 301D899D1A9489F300840B20 /* GCDWebServerFileResponse.m */; };
 		301D89AC1A9489F300840B20 /* GCDWebServerStreamedResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 301D899F1A9489F300840B20 /* GCDWebServerStreamedResponse.m */; };
 		301D89AE1A948B1000840B20 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 301D89AD1A948B1000840B20 /* libz.dylib */; };
-		301D89B21A948B4800840B20 /* HLSServer.m in Sources */ = {isa = PBXBuildFile; fileRef = 301D89B11A948B4800840B20 /* HLSServer.m */; };
 		30295B341A977A8A0004CCED /* libbz2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 30295B331A977A8A0004CCED /* libbz2.dylib */; };
 		3044D15C1E251152003D103F /* tsmuxer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3044D15A1E251152003D103F /* tsmuxer.cpp */; };
 		307C76C31B33035C004A262E /* UIGriddableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 307C76C21B33035C004A262E /* UIGriddableView.m */; };
@@ -210,10 +207,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		30087B5B1B5016560017F3E8 /* GCDWebServerFileChunkedResponse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GCDWebServerFileChunkedResponse.h; sourceTree = "<group>"; };
-		30087B5C1B5016620017F3E8 /* GCDWebServerFileChunkedResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerFileChunkedResponse.m; sourceTree = "<group>"; };
-		300B90841A9C9C6E00B0EC2D /* GCDWebServerFileStreamResponse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GCDWebServerFileStreamResponse.h; sourceTree = "<group>"; };
-		300B90851A9C9C7C00B0EC2D /* GCDWebServerFileStreamResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerFileStreamResponse.m; sourceTree = "<group>"; };
 		301D897F1A94878200840B20 /* Defaults.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Defaults.h; sourceTree = "<group>"; };
 		301D89821A9489F300840B20 /* GCDWebServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServer.h; sourceTree = "<group>"; };
 		301D89831A9489F300840B20 /* GCDWebServer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServer.m; sourceTree = "<group>"; };
@@ -244,8 +237,7 @@
 		301D899E1A9489F300840B20 /* GCDWebServerStreamedResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerStreamedResponse.h; sourceTree = "<group>"; };
 		301D899F1A9489F300840B20 /* GCDWebServerStreamedResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerStreamedResponse.m; sourceTree = "<group>"; };
 		301D89AD1A948B1000840B20 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
-		301D89B01A948B3A00840B20 /* HLSServer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HLSServer.h; sourceTree = "<group>"; };
-		301D89B11A948B4800840B20 /* HLSServer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HLSServer.m; sourceTree = "<group>"; };
+		302649391F3C68D6000DD551 /* DemoFMP4.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = DemoFMP4.entitlements; path = DemoFMP4/DemoFMP4.entitlements; sourceTree = "<group>"; };
 		30295B331A977A8A0004CCED /* libbz2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libbz2.dylib; path = usr/lib/libbz2.dylib; sourceTree = SDKROOT; };
 		3044D15A1E251152003D103F /* tsmuxer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tsmuxer.cpp; sourceTree = "<group>"; };
 		3044D15B1E251152003D103F /* tsmuxer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tsmuxer.h; sourceTree = "<group>"; };
@@ -696,10 +688,15 @@
 			isa = PBXGroup;
 			children = (
 				30D986E31A95E9C10053121B /* Encoding */,
-				301D89B01A948B3A00840B20 /* HLSServer.h */,
-				301D89B11A948B4800840B20 /* HLSServer.m */,
 			);
 			name = Server;
+			sourceTree = "<group>";
+		};
+		3026493A1F3C68E0000DD551 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		30840EF41B59205E001E44C5 /* Bento4 */ = {
@@ -1038,10 +1035,6 @@
 			children = (
 				30E2CD6D1A94B8E600BFAF39 /* CacheFileManager.h */,
 				30E2CD6E1A94B8F200BFAF39 /* CacheFileManager.m */,
-				30087B5B1B5016560017F3E8 /* GCDWebServerFileChunkedResponse.h */,
-				30087B5C1B5016620017F3E8 /* GCDWebServerFileChunkedResponse.m */,
-				300B90841A9C9C6E00B0EC2D /* GCDWebServerFileStreamResponse.h */,
-				300B90851A9C9C7C00B0EC2D /* GCDWebServerFileStreamResponse.m */,
 				307C76C51B330FD1004A262E /* NSTimer+Blocks.h */,
 				307C76C61B330FD1004A262E /* NSTimer+Blocks.m */,
 				308C6A341A938B210028C260 /* UIButton+Blocks.h */,
@@ -1055,8 +1048,10 @@
 		30D49F7B1A93570A000E79A4 = {
 			isa = PBXGroup;
 			children = (
+				302649391F3C68D6000DD551 /* DemoFMP4.entitlements */,
 				30D49F861A93570A000E79A4 /* Sources */,
 				30D49F851A93570A000E79A4 /* Products */,
+				3026493A1F3C68E0000DD551 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1286,6 +1281,14 @@
 						CreatedOnToolsVersion = 6.1.1;
 						DevelopmentTeam = VVU5C37FM9;
 						ProvisioningStyle = Automatic;
+						SystemCapabilities = {
+							com.apple.Push = {
+								enabled = 0;
+							};
+							com.apple.iCloud = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -1390,12 +1393,9 @@
 				308410501B59205F001E44C5 /* Ap4OmaDcf.cpp in Sources */,
 				30D4A02D1A937881000E79A4 /* PBJMediaWriter.m in Sources */,
 				30D49FD51A936E90000E79A4 /* DDASLLogger.m in Sources */,
-				30087B5D1B5016620017F3E8 /* GCDWebServerFileChunkedResponse.m in Sources */,
 				3084102E1B59205F001E44C5 /* Ap4FileCopier.cpp in Sources */,
 				301D89AB1A9489F300840B20 /* GCDWebServerFileResponse.m in Sources */,
 				3084102D1B59205F001E44C5 /* Ap4File.cpp in Sources */,
-				300B90861A9C9C7C00B0EC2D /* GCDWebServerFileStreamResponse.m in Sources */,
-				301D89B21A948B4800840B20 /* HLSServer.m in Sources */,
 				3044D15C1E251152003D103F /* tsmuxer.cpp in Sources */,
 				308410861B59205F001E44C5 /* Ap4MetaData.cpp in Sources */,
 				3084103F1B59205F001E44C5 /* Ap4LinearReader.cpp in Sources */,
@@ -1628,6 +1628,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_ENTITLEMENTS = DemoFMP4/DemoFMP4.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEVELOPMENT_TEAM = VVU5C37FM9;
@@ -1636,7 +1637,7 @@
 				INFOPLIST_FILE = DemoFMP4/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				PRODUCT_BUNDLE_IDENTIFIER = ru.denivip.DemoFMP4;
+				PRODUCT_BUNDLE_IDENTIFIER = ru.denivip.tests;
 				PRODUCT_NAME = DemoFMP4;
 				USER_HEADER_SEARCH_PATHS = "";
 			};
@@ -1647,6 +1648,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_ENTITLEMENTS = DemoFMP4/DemoFMP4.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEVELOPMENT_TEAM = VVU5C37FM9;
@@ -1655,7 +1657,7 @@
 				INFOPLIST_FILE = DemoFMP4/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				PRODUCT_BUNDLE_IDENTIFIER = ru.denivip.DemoFMP4;
+				PRODUCT_BUNDLE_IDENTIFIER = ru.denivip.tests;
 				PRODUCT_NAME = DemoFMP4;
 				USER_HEADER_SEARCH_PATHS = "";
 			};
@@ -1713,6 +1715,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_ENTITLEMENTS = DemoFMP4/DemoFMP4.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEVELOPMENT_TEAM = VVU5C37FM9;
@@ -1721,7 +1724,7 @@
 				INFOPLIST_FILE = DemoFMP4/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				PRODUCT_BUNDLE_IDENTIFIER = ru.denivip.DemoFMP4;
+				PRODUCT_BUNDLE_IDENTIFIER = ru.denivip.tests;
 				PRODUCT_NAME = DemoFMP4;
 				PROVISIONING_PROFILE = "";
 				USER_HEADER_SEARCH_PATHS = "";

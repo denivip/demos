@@ -25,10 +25,6 @@ static int ddLogLevel = LOG_LEVEL_VERBOSE;
     [self setupLogging]; // Логирование необходимо инициализировать до Hockey, чтобы отправлялись логи вместе с крэшами.
     DDLogVerbose(@"App Started");
 
-    //dispatch_async(dispatch_get_main_queue(), ^{
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [[HLSServer sharedInstance] bootstrapServer];
-    });
     return YES;
 }
 

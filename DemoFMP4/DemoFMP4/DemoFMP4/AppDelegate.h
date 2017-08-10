@@ -5,10 +5,6 @@
 #import <UIKit/UIKit.h>
 #import <CoreData/CoreData.h>
 #import "Defaults.h"
-#import "HLSServer.h"
-
-#define kNotfMessage         @"kNotfMessage"
-#define kGDCNetwrokError     @"GCDWriteError"
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 

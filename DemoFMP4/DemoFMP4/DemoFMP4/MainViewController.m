@@ -3,7 +3,7 @@
 
 #import "MainViewController.h"
 #import "Defaults.h"
-#import "HLSServer.h"
+
 #import "CacheFileManager.h"
 #import "AppDelegate.h"
 #import "UIGriddableView.h"
@@ -12,14 +12,14 @@
 
 __weak static PBJVision *weakvision;
 
-@interface MainViewController ()
+@interface MainViewController () <UIDocumentPickerDelegate>
 @property (strong, nonatomic) PBJVision *vision;
 
 @property (weak, nonatomic) IBOutlet UIView *previewView;
 @property (weak, nonatomic) IBOutlet UIButton *toggleStreaming;
 @property (weak, nonatomic) IBOutlet UIView *uisubsRoot;
 @property (strong, nonatomic) NSMutableArray* loglines;
-
+@property (strong, nonatomic) NSMutableData* currentMP4;
 @property (assign) double tapStartTs;
 @property (assign) double lastActionTs;
 @property (assign) int isRecording;
@@ -69,15 +69,6 @@ static int needStartCapture = 0;
             needStartCapture = 0;
         }
     } repeats:YES];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@checkselector(self, serverNotfNetworkFail:)
-                                                 name:kGDCNetwrokError
-                                               object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@checkselector(self, serverNotfNetworkMsg:)
-                                                 name:kNotfMessage
-                                               object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@checkselector(self, willEnterForeground:)
@@ -226,6 +217,45 @@ static int needStartCapture = 0;
     //else{
     //    [self.vision endVideoCapture];
     //}
+    // Saving current MP4
+    if(self.currentMP4 != nil && self.isRecording == 0){
+        NSData* data2save = nil;
+        @synchronized (self) {
+            data2save = self.currentMP4;
+            self.currentMP4 = nil;
+        };
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if([data2save length] == 0){
+                return;
+            }
+            NSError *error;
+            NSString *fileName = [NSString stringWithFormat:@"tst%f.mov", [[NSDate date] timeIntervalSince1970]];
+            NSURL *directoryURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]] isDirectory:YES];
+            [[NSFileManager defaultManager] createDirectoryAtURL:directoryURL withIntermediateDirectories:YES attributes:nil error:&error];
+            if (error) {
+                NSLog(@"Error1: %@", error);
+                return;
+            }
+            NSURL *fileURL = [directoryURL URLByAppendingPathComponent:fileName];
+            
+            NSString *path = fileURL.absoluteString;
+            NSLog(@"fileURL.absoluteString: %@", path);
+            [data2save writeToURL:fileURL options:NSDataWritingAtomic error:&error];
+            if (error) {
+                NSLog(@"Error: %@", error);
+            }else{
+                UIDocumentPickerViewController *documentPicker = [[UIDocumentPickerViewController alloc] initWithURL:fileURL
+                                                                                                              inMode:UIDocumentPickerModeExportToService];
+                documentPicker.delegate = self;// UIDocumentPickerDelegate
+                documentPicker.modalPresentationStyle = UIModalPresentationFormSheet;
+                [self presentViewController:documentPicker animated:YES completion:nil];
+            }
+        });
+    }
+}
+
+- (void)documentPicker:(UIDocumentPickerViewController *)controller didPickDocumentAtURL:(NSURL *)url {
+    [self setStatusLog:@"MP4 saved" replace:NO];
 }
 
 - (void)updateView {
@@ -285,22 +315,6 @@ static int needStartCapture = 0;
     }
 }
 
-- (void)serverNotfNetworkFail:(NSNotification*)notification {
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [self setStatusLog:NSLocalizedString(@"Socket operation failed: can`t send data", nil) replace:NO];
-    });
-}
-
-
-- (void)serverNotfNetworkMsg:(NSNotification*)notification {
-    dispatch_async(dispatch_get_main_queue(), ^{
-        NSDictionary* userInfo = [notification userInfo];
-        if([userInfo objectForKey:@"message"] != nil){
-            [self setStatusLog:[userInfo objectForKey:@"message"] replace:NO];
-        }
-    });
-}
-
 - (BOOL)vision:(PBJVision *)vision canFlushInmemVideo:(CBCircularData *)video andAudio:(CBCircularData *)audio {
     CFTimeInterval ts = CACurrentMediaTime();
     if(self.prevFlushedChunkTs < 1.0){
@@ -315,15 +329,22 @@ static int needStartCapture = 0;
 //        self.prevFlushedChunkTs = ts;
 //        return YES;
 //    }
-    if([video size] > 0 && ts - self.prevFlushedChunkTs > kChunkedFileMinChunkLenSec)
+    if([video size] > 0 && ts - self.prevFlushedChunkTs > kChunkedFileMinChunkLenSec && self.isRecording > 0)
     {
         self.prevFlushedChunkTs = ts;
         [FFReencoder muxVideoBuffer:video audioBuffer:audio completion:^(NSData* moov_dat, NSData* moof_dat){
-            HLSServer* srv = [HLSServer sharedInstance];
-            srv.liveEncodedTsHeader = moov_dat;
-            [HLSServer bumpNetworkStatsBytesIn:[moof_dat length] bytesOut:0];
-            NSUInteger recentChunkOffset = [srv.liveEncodedTsBuffer writeData:moof_dat];
-            srv.liveEncodedTsBufferOffset = recentChunkOffset;
+            @synchronized (self) {
+                if(self.currentMP4 == nil){
+                    self.currentMP4 = [[NSMutableData alloc] init];
+                    [self.currentMP4 appendData:moov_dat];
+                };
+                [self.currentMP4 appendData:moof_dat];
+            };
+            //HLSServer* srv = [HLSServer sharedInstance];
+            //srv.liveEncodedTsHeader = moov_dat;
+            //[HLSServer bumpNetworkStatsBytesIn:[moof_dat length] bytesOut:0];
+            //NSUInteger recentChunkOffset = [srv.liveEncodedTsBuffer writeData:moof_dat];
+            //srv.liveEncodedTsBufferOffset = recentChunkOffset;
         }];
         return YES;
     }
