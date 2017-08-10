@@ -565,6 +565,7 @@ int avMuxH264AacTS(const AP4_UI08* vbuff, int64_t vbuff_len,
     if(abuff_len > 0){
         audio_track = AddAacTrack(NULL/*input_movie*/, abuff, (AP4_Size)abuff_len, *sample_storage);
     }
+    printf("avMuxH264AacTS: preparing TS, video_track: %fs, audio_track: %fs\n", video_track?video_track->GetDurationMs()/1000.0f:0.0f, audio_track?audio_track->GetDurationMs()/1000.0f:0.0f);
     // open the output
     AP4_ByteStream* output = NULL;
     output = new AP4_MemoryByteStream();
@@ -651,15 +652,7 @@ int avMuxH264AacTS(const AP4_UI08* vbuff, int64_t vbuff_len,
                           audio_track, audio_reader, audio_stream,
                           video_track, video_reader, video_stream);
     
-    /*
-    // create a multimedia file
-    AP4_File file(input_movie);
-    // set the file type
-    file.SetFileType(AP4_FILE_BRAND_MP42, 1, &brands[0], brands.ItemCount());
-    // write the file to the output
-    AP4_FileWriter::Write(file, *output);
-    */
-    
+   
     AP4_LargeSize size;
     output->GetSize(size);
     output->Seek(0);

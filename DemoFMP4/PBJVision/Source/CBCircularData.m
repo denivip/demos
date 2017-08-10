@@ -10,7 +10,6 @@
 #import "CBCircularData.h"
 
 @interface CBCircularData()
-@property (strong) NSDate* lastUpdated;
 @property (strong) NSMutableArray* buffers;
 @property (assign) NSUInteger baseOffset;
 @property (assign) NSUInteger maxTotalSize;
@@ -28,7 +27,7 @@
 }
 
 - (NSDate*)getLastModified {
-    return self.lastUpdated;
+    return self.lastWriteTs;
 }
 
 - (void)removeAll {
@@ -38,6 +37,7 @@
         }else{
             [self.buffers removeAllObjects];
         }
+        self.firstWriteTs = nil;
         self.curTotalSize = 0;
         self.baseOffset = 0;
     }
@@ -62,7 +62,10 @@
 - (NSUInteger)writeData:(NSData*)dt {
     NSUInteger buffOffset = self.baseOffset;
     @synchronized(self.buffers) {
-        self.lastUpdated = [NSDate date];
+        self.lastWriteTs = [NSDate date];
+        if(self.firstWriteTs == nil){
+            self.firstWriteTs = [NSDate date];
+        }
         [self.buffers addObject:dt];
         buffOffset = self.baseOffset+self.curTotalSize;
         self.curTotalSize += [dt length];
@@ -77,7 +80,7 @@
     return buffOffset;
 }
 
-- (NSData*)readCurrentDataAndReset {
+- (NSData*)readCurrentData:(BOOL)andReset {
     if([self size] == 0){
         return [[NSData alloc] init];
     }
@@ -87,7 +90,9 @@
             [md appendData:block];
         }
     }
-    [self removeAll];
+    if(andReset){
+        [self removeAll];
+    }
     return md;
 }
 

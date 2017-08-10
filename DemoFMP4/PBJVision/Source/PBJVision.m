@@ -2778,9 +2778,18 @@ typedef void (^PBJVisionBlock)();
     [self inmemResetEncoders];
 }
 
-- (void)inmemOnIFrame
+- (void)inmemTryFlushBuffers
 {
-    [self inmemCheckTsFlush];
+    if(self.liveVideoH264Buffer.flags == 0 || self.liveVideoH264Buffer.size < 1 || self.liveAudioAACBuffer.size < 1){
+        return;
+    }
+    if([self.delegate vision:self canFlushInmemVideo:self.liveVideoH264Buffer andAudio:self.liveAudioAACBuffer]){
+        [self inmemResetEncoders];
+    }
+}
+
+- (void)inmemOnBeforeIFrame {
+    [self inmemTryFlushBuffers];
 }
 
 - (void)inmemSpsPps:(NSData*)sps pps:(NSData*)pps
@@ -2799,6 +2808,7 @@ typedef void (^PBJVisionBlock)();
     [line2 appendData:pps];
     //NSLog(@"inmem HAL pps: %@", pps);
     [self.liveVideoH264Buffer writeData:line2];
+    self.liveVideoH264Buffer.flags |= 1;
 }
 
 - (void)inmemEncodedVideoData:(NSData*)data isKeyFrame:(BOOL)isKeyFrame
@@ -2827,15 +2837,9 @@ typedef void (^PBJVisionBlock)();
         self.liveVideoH264Buffer = [[CBCircularData alloc] initWithDepth:PBJVisionInmemBufferMb*1000000];
         self.liveAudioAACBuffer = [[CBCircularData alloc] initWithDepth:PBJVisionInmemBufferMb*1000000];
     }
+    self.liveVideoH264Buffer.flags = 0;
     [self.liveVideoH264Buffer removeAll];
     [self.liveAudioAACBuffer removeAll];
-}
-
-- (void)inmemCheckTsFlush
-{
-    if([self.delegate vision:self canFlushInmemVideo:self.liveVideoH264Buffer andAudio:self.liveAudioAACBuffer]){
-        [self inmemResetEncoders];
-    }
 }
 
 #pragma mark - sample buffer processing

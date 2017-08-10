@@ -40,106 +40,6 @@ static const int kAACFrequencyAdtsId = 4;
     return self;
 }
 
-void didCompressH264(void *outputCallbackRefCon, void *sourceFrameRefCon, OSStatus status, VTEncodeInfoFlags infoFlags,
-                     CMSampleBufferRef sampleBuffer )
-{
-    //NSLog(@"didCompressH264 called with status %d infoFlags %d", (int)status, (int)infoFlags);
-    if (status != 0) return;
-    
-    if (!CMSampleBufferDataIsReady(sampleBuffer))
-    {
-        //NSLog(@"didCompressH264 data is not ready ");
-        return;
-    }
-    //CMTime pts = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
-    //CMTime dts = CMSampleBufferGetDecodeTimeStamp(sampleBuffer);
-    H264HwEncoderImpl* encoder = (__bridge H264HwEncoderImpl*)outputCallbackRefCon;
-    
-    // Check if we have got a key frame first
-    BOOL isIFrame = NO;
-    BOOL isPps = NO;
-    BOOL isSps = NO;
-    BOOL isDependendOnOther = NO;
-    CFArrayRef attachmentsArray = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, 0);
-    if (CFArrayGetCount(attachmentsArray)) {
-        CFBooleanRef notSync;
-        CFDictionaryRef dict = CFArrayGetValueAtIndex(attachmentsArray, 0);
-        BOOL keyExists = CFDictionaryGetValueIfPresent(dict,
-                                                       kCMSampleAttachmentKey_NotSync,
-                                                       (const void **)&notSync);
-        // An I-Frame is a sync frame
-        isIFrame = !keyExists || !CFBooleanGetValue(notSync);
-        
-        CFBooleanRef depOthers;
-        keyExists = CFDictionaryGetValueIfPresent(dict,
-                                                  kCMSampleAttachmentKey_DependsOnOthers,
-                                                  (const void **)&depOthers);
-        // An I-Frame is a sync frame
-        isDependendOnOther = keyExists && CFBooleanGetValue(depOthers);
-    }
-    if (isIFrame)
-    {
-        if (encoder->_delegate)
-        {
-            // To flush previously collected buffers
-            [encoder->_delegate inmemOnIFrame];
-        }
-    }
-    //bool keyframe = !CFDictionaryContainsKey( (CFArrayGetValueAtIndex(CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, true), 0)), kCMSampleAttachmentKey_NotSync);
-    if (isIFrame)
-    {
-        CMFormatDescriptionRef vformat = CMSampleBufferGetFormatDescription(sampleBuffer);
-        // CFDictionaryRef extensionDict = CMFormatDescriptionGetExtensions(format);
-        // Get the extensions
-        // From the extensions get the dictionary with key "SampleDescriptionExtensionAtoms"
-        // From the dict, get the value for the key "avcC"
-        size_t sparameterSetSize, sparameterSetCount;
-        const uint8_t *sparameterSet;
-        OSStatus statusCode = CMVideoFormatDescriptionGetH264ParameterSetAtIndex(vformat, 0, &sparameterSet, &sparameterSetSize, &sparameterSetCount, 0 );
-        if (statusCode == noErr)
-        {
-            isSps = YES;
-            // Found sps and now check for pps
-            size_t pparameterSetSize, pparameterSetCount;
-            const uint8_t *pparameterSet;
-            OSStatus statusCode = CMVideoFormatDescriptionGetH264ParameterSetAtIndex(vformat, 1, &pparameterSet, &pparameterSetSize, &pparameterSetCount, 0 );
-            if (statusCode == noErr)
-            {
-                isPps = YES;
-                // Found pps
-                encoder->sps = [NSData dataWithBytes:sparameterSet length:sparameterSetSize];
-                encoder->pps = [NSData dataWithBytes:pparameterSet length:pparameterSetSize];
-                if (encoder->_delegate)
-                {
-                    [encoder->_delegate inmemSpsPps:encoder->sps pps:encoder->pps];
-                }
-            }
-        }
-    }
-    size_t length, totalLength;
-    size_t bufferOffset = 0;
-    char *dataPointer;
-    CMBlockBufferRef dataBuffer = CMSampleBufferGetDataBuffer(sampleBuffer);
-    OSStatus statusCodeRet = CMBlockBufferGetDataPointer(dataBuffer, 0, &length, &totalLength, &dataPointer);
-    if (statusCodeRet == noErr) {
-        static const int AVCCHeaderLength = 4;
-        while (bufferOffset < totalLength - AVCCHeaderLength) {
-            // Read the NAL unit length
-            uint32_t NALUnitLength = 0;
-            memcpy(&NALUnitLength, dataPointer + bufferOffset, AVCCHeaderLength);
-            
-            // Convert the length value from Big-endian to Little-endian
-            NALUnitLength = CFSwapInt32BigToHost(NALUnitLength);
-            
-            NSData* data = [[NSData alloc] initWithBytes:(dataPointer + bufferOffset + AVCCHeaderLength) length:NALUnitLength];
-            [encoder->_delegate inmemEncodedVideoData:data isKeyFrame:isIFrame];
-            
-            // Move to the next NAL unit in the block buffer
-            bufferOffset += AVCCHeaderLength + NALUnitLength;
-        }
-    }
-    //NSLog(@"Frame: mixed %i %i %i, parsed %li of %li", isIFrame?1:0, isPps?1:0, isSps?1:0, bufferOffset, totalLength);
-}
 
 - (BOOL)setupEncoding
 {
@@ -151,12 +51,12 @@ void didCompressH264(void *outputCallbackRefCon, void *sourceFrameRefCon, OSStat
     }
     dispatch_sync(aQueue, ^{
         OSStatus result = 0;
-
+        
         // Audio compression
         int bitrate = [[self.audioSettings objectForKey:AVEncoderBitRateKey] intValue];//96000;
         int frequencyInHz = [[self.audioSettings objectForKey:AVSampleRateKey] intValue];
         int channels = [[self.audioSettings objectForKey:AVNumberOfChannelsKey] intValue];//2
-
+        
         // descAACFormat.mSampleRate       = 32000;
         // descAACFormat.mChannelsPerFrame = 1;
         // descAACFormat.mBitsPerChannel   = 0;
@@ -223,11 +123,11 @@ void didCompressH264(void *outputCallbackRefCon, void *sourceFrameRefCon, OSStat
             result = AudioConverterGetProperty(aEncodingSession, kAudioConverterPropertyMaximumOutputPacketSize, &propSize, &outputPacketSize);
         }
         NSLog(@"H264: AudioConverterNewSpecific %d", (int)result);
-    
+        
         int ww = [[self.videoSettings objectForKey:AVVideoWidthKey] intValue];
         int hh = [[self.videoSettings objectForKey:AVVideoHeightKey] intValue];
         // video compression
-        result = VTCompressionSessionCreate(NULL, ww, hh, kCMVideoCodecType_H264, NULL, NULL, NULL, didCompressH264, (__bridge void *)(self),  &vEncodingSession);
+        result = VTCompressionSessionCreate(NULL, ww, hh, kCMVideoCodecType_H264, NULL, NULL, NULL, encodeVideo_didCompressH264, (__bridge void *)(self),  &vEncodingSession);
         if (result != noErr)
         {
             NSLog(@"H264: Unable to create a H264 session");
@@ -261,7 +161,7 @@ void didCompressH264(void *outputCallbackRefCon, void *sourceFrameRefCon, OSStat
         // CFRelease(ref);
         // }
         
- 
+        
         NSLog(@"H264: VTCompressionSessionCreate %d", (int)result);
         // Tell the encoder to start encoding
         VTCompressionSessionPrepareToEncodeFrames(vEncodingSession);
@@ -269,6 +169,101 @@ void didCompressH264(void *outputCallbackRefCon, void *sourceFrameRefCon, OSStat
         [self.delegate inmemEncodeStart];
     });
     return YES;
+}
+
+void encodeVideo_didCompressH264(void *outputCallbackRefCon, void *sourceFrameRefCon, OSStatus status, VTEncodeInfoFlags infoFlags,
+                     CMSampleBufferRef sampleBuffer )
+{
+    if (status != 0) return;
+    
+    if (!CMSampleBufferDataIsReady(sampleBuffer))
+    {
+        return;
+    }
+    //CMTime pts = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
+    //CMTime dts = CMSampleBufferGetDecodeTimeStamp(sampleBuffer);
+    H264HwEncoderImpl* encoder = (__bridge H264HwEncoderImpl*)outputCallbackRefCon;
+    
+    // Check if we have got a key frame first
+    BOOL isIFrame = NO;
+    BOOL isPps = NO;
+    BOOL isSps = NO;
+    BOOL isDependendOnOther = NO;
+    CFArrayRef attachmentsArray = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, 0);
+    if (CFArrayGetCount(attachmentsArray)) {
+        CFBooleanRef notSync;
+        CFDictionaryRef dict = CFArrayGetValueAtIndex(attachmentsArray, 0);
+        BOOL keyExists = CFDictionaryGetValueIfPresent(dict,
+                                                       kCMSampleAttachmentKey_NotSync,
+                                                       (const void **)&notSync);
+        // An I-Frame is a sync frame
+        isIFrame = !keyExists || !CFBooleanGetValue(notSync);
+        
+        CFBooleanRef depOthers;
+        keyExists = CFDictionaryGetValueIfPresent(dict,
+                                                  kCMSampleAttachmentKey_DependsOnOthers,
+                                                  (const void **)&depOthers);
+        // An I-Frame is a sync frame
+        isDependendOnOther = keyExists && CFBooleanGetValue(depOthers);
+    }
+    //bool keyframe = !CFDictionaryContainsKey( (CFArrayGetValueAtIndex(CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, true), 0)), kCMSampleAttachmentKey_NotSync);
+    if (isIFrame)
+    {
+        if (encoder->_delegate)
+        {
+            [encoder->_delegate inmemOnBeforeIFrame];
+        }
+        CMFormatDescriptionRef vformat = CMSampleBufferGetFormatDescription(sampleBuffer);
+        // CFDictionaryRef extensionDict = CMFormatDescriptionGetExtensions(format);
+        // Get the extensions
+        // From the extensions get the dictionary with key "SampleDescriptionExtensionAtoms"
+        // From the dict, get the value for the key "avcC"
+        size_t sparameterSetSize, sparameterSetCount;
+        const uint8_t *sparameterSet;
+        OSStatus statusCode = CMVideoFormatDescriptionGetH264ParameterSetAtIndex(vformat, 0, &sparameterSet, &sparameterSetSize, &sparameterSetCount, 0 );
+        if (statusCode == noErr)
+        {
+            isSps = YES;
+            // Found sps and now check for pps
+            size_t pparameterSetSize, pparameterSetCount;
+            const uint8_t *pparameterSet;
+            OSStatus statusCode = CMVideoFormatDescriptionGetH264ParameterSetAtIndex(vformat, 1, &pparameterSet, &pparameterSetSize, &pparameterSetCount, 0 );
+            if (statusCode == noErr)
+            {
+                isPps = YES;
+                // Found pps
+                encoder->sps = [NSData dataWithBytes:sparameterSet length:sparameterSetSize];
+                encoder->pps = [NSData dataWithBytes:pparameterSet length:pparameterSetSize];
+                if (encoder->_delegate)
+                {
+                    [encoder->_delegate inmemSpsPps:encoder->sps pps:encoder->pps];
+                }
+            }
+        }
+    }
+    size_t length, totalLength;
+    size_t bufferOffset = 0;
+    char *dataPointer;
+    CMBlockBufferRef dataBuffer = CMSampleBufferGetDataBuffer(sampleBuffer);
+    OSStatus statusCodeRet = CMBlockBufferGetDataPointer(dataBuffer, 0, &length, &totalLength, &dataPointer);
+    if (statusCodeRet == noErr) {
+        static const int AVCCHeaderLength = 4;
+        while (bufferOffset < totalLength - AVCCHeaderLength) {
+            // Read the NAL unit length
+            uint32_t NALUnitLength = 0;
+            memcpy(&NALUnitLength, dataPointer + bufferOffset, AVCCHeaderLength);
+            
+            // Convert the length value from Big-endian to Little-endian
+            NALUnitLength = CFSwapInt32BigToHost(NALUnitLength);
+            
+            NSData* data = [[NSData alloc] initWithBytes:(dataPointer + bufferOffset + AVCCHeaderLength) length:NALUnitLength];
+            [encoder->_delegate inmemEncodedVideoData:data isKeyFrame:isIFrame];
+            
+            // Move to the next NAL unit in the block buffer
+            bufferOffset += AVCCHeaderLength + NALUnitLength;
+        }
+    }
+    //NSLog(@"Frame: mixed %i %i %i, parsed %li of %li", isIFrame?1:0, isPps?1:0, isSps?1:0, bufferOffset, totalLength);
 }
 
 OSStatus encodeAudio_inInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNumberDataPackets, AudioBufferList *ioData, AudioStreamPacketDescription **outDataPacketDescription, void *inUserData)
@@ -302,7 +297,6 @@ OSStatus encodeAudio_inInputDataProc(AudioConverterRef inAudioConverter, UInt32 
 
 - (void) encodeAudio:(CMSampleBufferRef)sampleBuffer
 {
-//    CMAudioFormatDescriptionRef aformat = CMSampleBufferGetFormatDescription(sampleBuffer);
     CFRetain(sampleBuffer);
     @weakify(self);
     dispatch_sync(aQueue, ^{
@@ -348,16 +342,13 @@ OSStatus encodeAudio_inInputDataProc(AudioConverterRef inAudioConverter, UInt32 
     }
     CFRetain(sampleBuffer);
     dispatch_sync(aQueue, ^{
-        
         frameCount++;
         // Get the CV Image buffer
         CVImageBufferRef imageBuffer = (CVImageBufferRef)CMSampleBufferGetImageBuffer(sampleBuffer);
-        
         // Create properties
         CMTime presentationTimeStamp = CMTimeMake(frameCount, 1000);
         //CMTime duration = CMTimeMake(1, DURATION);
         VTEncodeInfoFlags flags;
-        
         // Pass it to the encoder
         OSStatus statusCode = VTCompressionSessionEncodeFrame(vEncodingSession,
                                                               imageBuffer,

@@ -7,19 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		301D89A01A9489F300840B20 /* GCDWebServer.m in Sources */ = {isa = PBXBuildFile; fileRef = 301D89831A9489F300840B20 /* GCDWebServer.m */; };
-		301D89A11A9489F300840B20 /* GCDWebServerConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 301D89851A9489F300840B20 /* GCDWebServerConnection.m */; };
-		301D89A21A9489F300840B20 /* GCDWebServerFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = 301D89871A9489F300840B20 /* GCDWebServerFunctions.m */; };
-		301D89A31A9489F300840B20 /* GCDWebServerRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 301D898B1A9489F300840B20 /* GCDWebServerRequest.m */; };
-		301D89A41A9489F300840B20 /* GCDWebServerResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 301D898D1A9489F300840B20 /* GCDWebServerResponse.m */; };
-		301D89A51A9489F300840B20 /* GCDWebServerDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 301D89901A9489F300840B20 /* GCDWebServerDataRequest.m */; };
-		301D89A61A9489F300840B20 /* GCDWebServerFileRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 301D89921A9489F300840B20 /* GCDWebServerFileRequest.m */; };
-		301D89A71A9489F300840B20 /* GCDWebServerMultiPartFormRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 301D89941A9489F300840B20 /* GCDWebServerMultiPartFormRequest.m */; };
-		301D89A81A9489F300840B20 /* GCDWebServerURLEncodedFormRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 301D89961A9489F300840B20 /* GCDWebServerURLEncodedFormRequest.m */; };
-		301D89A91A9489F300840B20 /* GCDWebServerDataResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 301D89991A9489F300840B20 /* GCDWebServerDataResponse.m */; };
-		301D89AA1A9489F300840B20 /* GCDWebServerErrorResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 301D899B1A9489F300840B20 /* GCDWebServerErrorResponse.m */; };
-		301D89AB1A9489F300840B20 /* GCDWebServerFileResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 301D899D1A9489F300840B20 /* GCDWebServerFileResponse.m */; };
-		301D89AC1A9489F300840B20 /* GCDWebServerStreamedResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 301D899F1A9489F300840B20 /* GCDWebServerStreamedResponse.m */; };
 		301D89AE1A948B1000840B20 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 301D89AD1A948B1000840B20 /* libz.dylib */; };
 		3026493E1F3C8FFE000DD551 /* muxer_ts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3026493D1F3C8FFE000DD551 /* muxer_ts.cpp */; };
 		30295B341A977A8A0004CCED /* libbz2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 30295B331A977A8A0004CCED /* libbz2.dylib */; };
@@ -209,34 +196,6 @@
 
 /* Begin PBXFileReference section */
 		301D897F1A94878200840B20 /* Defaults.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Defaults.h; sourceTree = "<group>"; };
-		301D89821A9489F300840B20 /* GCDWebServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServer.h; sourceTree = "<group>"; };
-		301D89831A9489F300840B20 /* GCDWebServer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServer.m; sourceTree = "<group>"; };
-		301D89841A9489F300840B20 /* GCDWebServerConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerConnection.h; sourceTree = "<group>"; };
-		301D89851A9489F300840B20 /* GCDWebServerConnection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerConnection.m; sourceTree = "<group>"; };
-		301D89861A9489F300840B20 /* GCDWebServerFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerFunctions.h; sourceTree = "<group>"; };
-		301D89871A9489F300840B20 /* GCDWebServerFunctions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerFunctions.m; sourceTree = "<group>"; };
-		301D89881A9489F300840B20 /* GCDWebServerHTTPStatusCodes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerHTTPStatusCodes.h; sourceTree = "<group>"; };
-		301D89891A9489F300840B20 /* GCDWebServerPrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerPrivate.h; sourceTree = "<group>"; };
-		301D898A1A9489F300840B20 /* GCDWebServerRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerRequest.h; sourceTree = "<group>"; };
-		301D898B1A9489F300840B20 /* GCDWebServerRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerRequest.m; sourceTree = "<group>"; };
-		301D898C1A9489F300840B20 /* GCDWebServerResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerResponse.h; sourceTree = "<group>"; };
-		301D898D1A9489F300840B20 /* GCDWebServerResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerResponse.m; sourceTree = "<group>"; };
-		301D898F1A9489F300840B20 /* GCDWebServerDataRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerDataRequest.h; sourceTree = "<group>"; };
-		301D89901A9489F300840B20 /* GCDWebServerDataRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerDataRequest.m; sourceTree = "<group>"; };
-		301D89911A9489F300840B20 /* GCDWebServerFileRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerFileRequest.h; sourceTree = "<group>"; };
-		301D89921A9489F300840B20 /* GCDWebServerFileRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerFileRequest.m; sourceTree = "<group>"; };
-		301D89931A9489F300840B20 /* GCDWebServerMultiPartFormRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerMultiPartFormRequest.h; sourceTree = "<group>"; };
-		301D89941A9489F300840B20 /* GCDWebServerMultiPartFormRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerMultiPartFormRequest.m; sourceTree = "<group>"; };
-		301D89951A9489F300840B20 /* GCDWebServerURLEncodedFormRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerURLEncodedFormRequest.h; sourceTree = "<group>"; };
-		301D89961A9489F300840B20 /* GCDWebServerURLEncodedFormRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerURLEncodedFormRequest.m; sourceTree = "<group>"; };
-		301D89981A9489F300840B20 /* GCDWebServerDataResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerDataResponse.h; sourceTree = "<group>"; };
-		301D89991A9489F300840B20 /* GCDWebServerDataResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerDataResponse.m; sourceTree = "<group>"; };
-		301D899A1A9489F300840B20 /* GCDWebServerErrorResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerErrorResponse.h; sourceTree = "<group>"; };
-		301D899B1A9489F300840B20 /* GCDWebServerErrorResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerErrorResponse.m; sourceTree = "<group>"; };
-		301D899C1A9489F300840B20 /* GCDWebServerFileResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerFileResponse.h; sourceTree = "<group>"; };
-		301D899D1A9489F300840B20 /* GCDWebServerFileResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerFileResponse.m; sourceTree = "<group>"; };
-		301D899E1A9489F300840B20 /* GCDWebServerStreamedResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDWebServerStreamedResponse.h; sourceTree = "<group>"; };
-		301D899F1A9489F300840B20 /* GCDWebServerStreamedResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDWebServerStreamedResponse.m; sourceTree = "<group>"; };
 		301D89AD1A948B1000840B20 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		302649391F3C68D6000DD551 /* DemoFMP4.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = DemoFMP4.entitlements; path = DemoFMP4/DemoFMP4.entitlements; sourceTree = "<group>"; };
 		3026493D1F3C8FFE000DD551 /* muxer_ts.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = muxer_ts.cpp; sourceTree = "<group>"; };
@@ -626,66 +585,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		301D89801A9489F300840B20 /* GCDWebServer */ = {
-			isa = PBXGroup;
-			children = (
-				301D89811A9489F300840B20 /* Core */,
-				301D898E1A9489F300840B20 /* Requests */,
-				301D89971A9489F300840B20 /* Responses */,
-			);
-			name = GCDWebServer;
-			path = ../../GCDWebServer/GCDWebServer;
-			sourceTree = "<group>";
-		};
-		301D89811A9489F300840B20 /* Core */ = {
-			isa = PBXGroup;
-			children = (
-				301D89821A9489F300840B20 /* GCDWebServer.h */,
-				301D89831A9489F300840B20 /* GCDWebServer.m */,
-				301D89841A9489F300840B20 /* GCDWebServerConnection.h */,
-				301D89851A9489F300840B20 /* GCDWebServerConnection.m */,
-				301D89861A9489F300840B20 /* GCDWebServerFunctions.h */,
-				301D89871A9489F300840B20 /* GCDWebServerFunctions.m */,
-				301D89881A9489F300840B20 /* GCDWebServerHTTPStatusCodes.h */,
-				301D89891A9489F300840B20 /* GCDWebServerPrivate.h */,
-				301D898A1A9489F300840B20 /* GCDWebServerRequest.h */,
-				301D898B1A9489F300840B20 /* GCDWebServerRequest.m */,
-				301D898C1A9489F300840B20 /* GCDWebServerResponse.h */,
-				301D898D1A9489F300840B20 /* GCDWebServerResponse.m */,
-			);
-			path = Core;
-			sourceTree = "<group>";
-		};
-		301D898E1A9489F300840B20 /* Requests */ = {
-			isa = PBXGroup;
-			children = (
-				301D898F1A9489F300840B20 /* GCDWebServerDataRequest.h */,
-				301D89901A9489F300840B20 /* GCDWebServerDataRequest.m */,
-				301D89911A9489F300840B20 /* GCDWebServerFileRequest.h */,
-				301D89921A9489F300840B20 /* GCDWebServerFileRequest.m */,
-				301D89931A9489F300840B20 /* GCDWebServerMultiPartFormRequest.h */,
-				301D89941A9489F300840B20 /* GCDWebServerMultiPartFormRequest.m */,
-				301D89951A9489F300840B20 /* GCDWebServerURLEncodedFormRequest.h */,
-				301D89961A9489F300840B20 /* GCDWebServerURLEncodedFormRequest.m */,
-			);
-			path = Requests;
-			sourceTree = "<group>";
-		};
-		301D89971A9489F300840B20 /* Responses */ = {
-			isa = PBXGroup;
-			children = (
-				301D89981A9489F300840B20 /* GCDWebServerDataResponse.h */,
-				301D89991A9489F300840B20 /* GCDWebServerDataResponse.m */,
-				301D899A1A9489F300840B20 /* GCDWebServerErrorResponse.h */,
-				301D899B1A9489F300840B20 /* GCDWebServerErrorResponse.m */,
-				301D899C1A9489F300840B20 /* GCDWebServerFileResponse.h */,
-				301D899D1A9489F300840B20 /* GCDWebServerFileResponse.m */,
-				301D899E1A9489F300840B20 /* GCDWebServerStreamedResponse.h */,
-				301D899F1A9489F300840B20 /* GCDWebServerStreamedResponse.m */,
-			);
-			path = Responses;
-			sourceTree = "<group>";
-		};
 		301D89AF1A948B2100840B20 /* Server */ = {
 			isa = PBXGroup;
 			children = (
@@ -1102,7 +1001,6 @@
 			children = (
 				30840EF41B59205E001E44C5 /* Bento4 */,
 				30E2CD651A9494EB00BFAF39 /* PSTAlertController */,
-				301D89801A9489F300840B20 /* GCDWebServer */,
 				30D4A0201A937881000E79A4 /* PBJVision */,
 				30D49FFE1A936EEF000E79A4 /* AFNetworking */,
 				30D49FDC1A936EB4000E79A4 /* extobjc */,
@@ -1335,7 +1233,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				308410271B59205F001E44C5 /* Ap4DescriptorFactory.cpp in Sources */,
-				301D89A61A9489F300840B20 /* GCDWebServerFileRequest.m in Sources */,
 				308410461B59205F001E44C5 /* Ap4Movie.cpp in Sources */,
 				308410641B59205F001E44C5 /* Ap4SencAtom.cpp in Sources */,
 				30D4A0151A936EEF000E79A4 /* AFJSONRequestOperation.m in Sources */,
@@ -1357,11 +1254,9 @@
 				308410421B59205F001E44C5 /* Ap4MehdAtom.cpp in Sources */,
 				3084103D1B59205F001E44C5 /* Ap4IsltAtom.cpp in Sources */,
 				3084103E1B59205F001E44C5 /* Ap4IsmaCryp.cpp in Sources */,
-				301D89A81A9489F300840B20 /* GCDWebServerURLEncodedFormRequest.m in Sources */,
 				308410451B59205F001E44C5 /* Ap4MoovAtom.cpp in Sources */,
 				308410611B59205F001E44C5 /* Ap4SchmAtom.cpp in Sources */,
 				308410151B59205F001E44C5 /* Ap4Atom.cpp in Sources */,
-				301D89AA1A9489F300840B20 /* GCDWebServerErrorResponse.m in Sources */,
 				3084104F1B59205F001E44C5 /* Ap4OhdrAtom.cpp in Sources */,
 				308410211B59205F001E44C5 /* Ap4DataBuffer.cpp in Sources */,
 				308410371B59205F001E44C5 /* Ap4HvccAtom.cpp in Sources */,
@@ -1372,14 +1267,11 @@
 				30D4A0181A936EEF000E79A4 /* AFURLConnectionOperation.m in Sources */,
 				308410121B59205F001E44C5 /* Ap4.cpp in Sources */,
 				308410291B59205F001E44C5 /* Ap4ElstAtom.cpp in Sources */,
-				301D89A21A9489F300840B20 /* GCDWebServerFunctions.m in Sources */,
 				308410591B59205F001E44C5 /* Ap4SaioAtom.cpp in Sources */,
 				308410351B59205F001E44C5 /* Ap4HintTrackReader.cpp in Sources */,
-				301D89AC1A9489F300840B20 /* GCDWebServerStreamedResponse.m in Sources */,
 				3084103B1B59205F001E44C5 /* Ap4IproAtom.cpp in Sources */,
 				3084100D1B59205F001E44C5 /* Ap4AvcParser.cpp in Sources */,
 				308410571B59205F001E44C5 /* Ap4RtpAtom.cpp in Sources */,
-				301D89A01A9489F300840B20 /* GCDWebServer.m in Sources */,
 				308410651B59205F001E44C5 /* Ap4SgpdAtom.cpp in Sources */,
 				308410781B59205F001E44C5 /* Ap4TkhdAtom.cpp in Sources */,
 				308410241B59205F001E44C5 /* Ap4DecoderConfigDescriptor.cpp in Sources */,
@@ -1397,7 +1289,6 @@
 				30D4A02D1A937881000E79A4 /* PBJMediaWriter.m in Sources */,
 				30D49FD51A936E90000E79A4 /* DDASLLogger.m in Sources */,
 				3084102E1B59205F001E44C5 /* Ap4FileCopier.cpp in Sources */,
-				301D89AB1A9489F300840B20 /* GCDWebServerFileResponse.m in Sources */,
 				3084102D1B59205F001E44C5 /* Ap4File.cpp in Sources */,
 				3044D15C1E251152003D103F /* muxer_mp4.cpp in Sources */,
 				308410861B59205F001E44C5 /* Ap4MetaData.cpp in Sources */,
@@ -1445,7 +1336,6 @@
 				3084104B1B59205F001E44C5 /* Ap4ObjectDescriptor.cpp in Sources */,
 				308410521B59205F001E44C5 /* Ap4Piff.cpp in Sources */,
 				30D4A0161A936EEF000E79A4 /* AFNetworkActivityIndicatorManager.m in Sources */,
-				301D89A91A9489F300840B20 /* GCDWebServerDataResponse.m in Sources */,
 				308410801B59205F001E44C5 /* Ap4UuidAtom.cpp in Sources */,
 				3084104D1B59205F001E44C5 /* Ap4OddaAtom.cpp in Sources */,
 				3084104E1B59205F001E44C5 /* Ap4OdheAtom.cpp in Sources */,
@@ -1464,17 +1354,14 @@
 				3084103C1B59205F001E44C5 /* Ap4IsfmAtom.cpp in Sources */,
 				308410111B59205F001E44C5 /* Ap4NalParser.cpp in Sources */,
 				3084105D1B59205F001E44C5 /* Ap4SampleEntry.cpp in Sources */,
-				301D89A41A9489F300840B20 /* GCDWebServerResponse.m in Sources */,
 				308410441B59205F001E44C5 /* Ap4MfroAtom.cpp in Sources */,
 				30D4A02F1A937881000E79A4 /* PBJVisionUtilities.m in Sources */,
-				301D89A11A9489F300840B20 /* GCDWebServerConnection.m in Sources */,
 				30AC6BA01B5501BA00E9DC97 /* H264HwEncoderImpl.m in Sources */,
 				3084107A1B59205F001E44C5 /* Ap4TrakAtom.cpp in Sources */,
 				3084100F1B59205F001E44C5 /* Ap4HevcParser.cpp in Sources */,
 				308410531B59205F001E44C5 /* Ap4Processor.cpp in Sources */,
 				3084107B1B59205F001E44C5 /* Ap4TrefTypeAtom.cpp in Sources */,
 				30D49FD71A936E90000E79A4 /* DDLog.m in Sources */,
-				301D89A71A9489F300840B20 /* GCDWebServerMultiPartFormRequest.m in Sources */,
 				308410581B59205F001E44C5 /* Ap4RtpHint.cpp in Sources */,
 				308410811B59205F001E44C5 /* Ap4VmhdAtom.cpp in Sources */,
 				30D4A0131A936EEF000E79A4 /* AFHTTPRequestOperation.m in Sources */,
@@ -1489,7 +1376,6 @@
 				30D986E91A95F8990053121B /* FFReencoder.m in Sources */,
 				30D49FD41A936E90000E79A4 /* DDAbstractDatabaseLogger.m in Sources */,
 				308410481B59205F001E44C5 /* Ap4Mpeg2Ts.cpp in Sources */,
-				301D89A51A9489F300840B20 /* GCDWebServerDataRequest.m in Sources */,
 				3084100E1B59205F001E44C5 /* Ap4BitStream.cpp in Sources */,
 				308C6A361A938B310028C260 /* UIButton+Blocks.m in Sources */,
 				308410191B59205F001E44C5 /* Ap4BlocAtom.cpp in Sources */,
@@ -1504,7 +1390,6 @@
 				308410181B59205F001E44C5 /* Ap4AvccAtom.cpp in Sources */,
 				30D4A0121A936EEF000E79A4 /* AFHTTPClient.m in Sources */,
 				3084105C1B59205F001E44C5 /* Ap4SampleDescription.cpp in Sources */,
-				301D89A31A9489F300840B20 /* GCDWebServerRequest.m in Sources */,
 				308410851B59205F001E44C5 /* Ap4StreamCipher.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

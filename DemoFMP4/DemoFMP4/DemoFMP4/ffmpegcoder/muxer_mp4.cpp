@@ -397,6 +397,8 @@ int avMuxH264Aac(const AP4_UI08* vbuff, int64_t vbuff_len,
         atrack = AddAacTrack(*input_movie, abuff, (AP4_Size)abuff_len, *sample_storage);
     }
     
+    AP4_ByteStream* output = NULL;
+    output = new AP4_MemoryByteStream();
     // create a multimedia file
     AP4_File file(input_movie);
     // set the file type
@@ -413,8 +415,9 @@ int avMuxH264Aac(const AP4_UI08* vbuff, int64_t vbuff_len,
 
     *moov_outbuff = NULL;
     *moov_outbuff_len = 0;
-    
-    moov_output->Release();
-    moof_output->Release();
+
+    // cleanup
+    sample_storage->Release();
+    output->Release();
     return 0;
 }
