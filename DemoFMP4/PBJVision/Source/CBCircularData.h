@@ -11,6 +11,7 @@
 @interface CBCircularData : NSObject
 
 - (instancetype)initWithDepth:(NSUInteger)maxBytes;
+- (NSData*)readCurrentDataAndReset;
 - (NSData*)readData:(NSUInteger)offset length:(NSInteger)len;
 - (NSUInteger)writeData:(NSData*)dt;
 - (void)removeAll;

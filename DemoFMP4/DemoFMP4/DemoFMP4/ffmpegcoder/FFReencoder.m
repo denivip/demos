@@ -4,7 +4,7 @@
 
 #import <Foundation/Foundation.h>
 #import "FFReencoder.h"
-#import "tsmuxer.h"
+#include "muxer_mp4.h"
 
 static const int ddLogLevel = LOG_LEVEL_ERROR;
 @implementation FFReencoder
@@ -29,8 +29,8 @@ static const int ddLogLevel = LOG_LEVEL_ERROR;
     }
     int code = noErr;
     @autoreleasepool {
-        NSData* vpkts_buff = [video readData:video.lowOffset length:video.size];
-        NSData* apkts_buff = [audio readData:audio.lowOffset length:audio.size];
+        NSData* vpkts_buff = [video readCurrentDataAndReset];
+        NSData* apkts_buff = [audio readCurrentDataAndReset];
         
         int64_t moov_data_size = 0;
         void* moov_data_bytes = NULL;

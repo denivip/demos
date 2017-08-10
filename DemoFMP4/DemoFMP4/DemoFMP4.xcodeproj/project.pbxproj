@@ -22,7 +22,7 @@
 		301D89AC1A9489F300840B20 /* GCDWebServerStreamedResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 301D899F1A9489F300840B20 /* GCDWebServerStreamedResponse.m */; };
 		301D89AE1A948B1000840B20 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 301D89AD1A948B1000840B20 /* libz.dylib */; };
 		30295B341A977A8A0004CCED /* libbz2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 30295B331A977A8A0004CCED /* libbz2.dylib */; };
-		3044D15C1E251152003D103F /* tsmuxer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3044D15A1E251152003D103F /* tsmuxer.cpp */; };
+		3044D15C1E251152003D103F /* muxer_mp4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3044D15A1E251152003D103F /* muxer_mp4.cpp */; };
 		307C76C31B33035C004A262E /* UIGriddableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 307C76C21B33035C004A262E /* UIGriddableView.m */; };
 		307C76C71B330FD2004A262E /* NSTimer+Blocks.m in Sources */ = {isa = PBXBuildFile; fileRef = 307C76C61B330FD1004A262E /* NSTimer+Blocks.m */; };
 		3084100B1B59205F001E44C5 /* Bento4C.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 30840EFB1B59205E001E44C5 /* Bento4C.cpp */; };
@@ -239,8 +239,8 @@
 		301D89AD1A948B1000840B20 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		302649391F3C68D6000DD551 /* DemoFMP4.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = DemoFMP4.entitlements; path = DemoFMP4/DemoFMP4.entitlements; sourceTree = "<group>"; };
 		30295B331A977A8A0004CCED /* libbz2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libbz2.dylib; path = usr/lib/libbz2.dylib; sourceTree = SDKROOT; };
-		3044D15A1E251152003D103F /* tsmuxer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tsmuxer.cpp; sourceTree = "<group>"; };
-		3044D15B1E251152003D103F /* tsmuxer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tsmuxer.h; sourceTree = "<group>"; };
+		3044D15A1E251152003D103F /* muxer_mp4.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = muxer_mp4.cpp; sourceTree = "<group>"; };
+		3044D15B1E251152003D103F /* muxer_mp4.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = muxer_mp4.h; sourceTree = "<group>"; };
 		307C76C21B33035C004A262E /* UIGriddableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UIGriddableView.m; sourceTree = "<group>"; };
 		307C76C41B330365004A262E /* UIGriddableView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UIGriddableView.h; sourceTree = "<group>"; };
 		307C76C51B330FD1004A262E /* NSTimer+Blocks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSTimer+Blocks.h"; sourceTree = "<group>"; };
@@ -1231,8 +1231,8 @@
 				30AC6B9F1B5501BA00E9DC97 /* H264HwEncoderImpl.m */,
 				30D986E71A95F88C0053121B /* FFReencoder.h */,
 				30D986E81A95F8990053121B /* FFReencoder.m */,
-				3044D15A1E251152003D103F /* tsmuxer.cpp */,
-				3044D15B1E251152003D103F /* tsmuxer.h */,
+				3044D15A1E251152003D103F /* muxer_mp4.cpp */,
+				3044D15B1E251152003D103F /* muxer_mp4.h */,
 			);
 			name = Encoding;
 			path = ffmpegcoder;
@@ -1396,7 +1396,7 @@
 				3084102E1B59205F001E44C5 /* Ap4FileCopier.cpp in Sources */,
 				301D89AB1A9489F300840B20 /* GCDWebServerFileResponse.m in Sources */,
 				3084102D1B59205F001E44C5 /* Ap4File.cpp in Sources */,
-				3044D15C1E251152003D103F /* tsmuxer.cpp in Sources */,
+				3044D15C1E251152003D103F /* muxer_mp4.cpp in Sources */,
 				308410861B59205F001E44C5 /* Ap4MetaData.cpp in Sources */,
 				3084103F1B59205F001E44C5 /* Ap4LinearReader.cpp in Sources */,
 				308410471B59205F001E44C5 /* Ap4MovieFragment.cpp in Sources */,

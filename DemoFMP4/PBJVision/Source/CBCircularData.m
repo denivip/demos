@@ -73,6 +73,20 @@
     return buffOffset;
 }
 
+- (NSData*)readCurrentDataAndReset {
+    if([self size] == 0){
+        return [[NSData alloc] init];
+    }
+    NSMutableData* md = [[NSMutableData alloc] initWithCapacity:[self size]];
+    @synchronized(self.buffers) {
+        for(NSData* block in self.buffers){
+            [md appendData:block];
+        }
+    }
+    [self removeAll];
+    return md;
+}
+
 - (NSData*)readData:(NSUInteger)offset length:(NSInteger)len {
     NSMutableData* md = [[NSMutableData alloc] initWithCapacity:len];
     if(offset < self.baseOffset){

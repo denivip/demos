@@ -2,8 +2,9 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "tsmuxer.h"
 #import "H264HwEncoderImpl.h"
+#include "muxer_mp4.h"
+
 static const int kSamplesPerFrame = 1024;
 static const int kAACFrequency = 44100;
 static const int kAACFrequencyAdtsId = 4;
