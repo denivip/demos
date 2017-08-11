@@ -21,7 +21,7 @@
 - (instancetype)initWithDepth:(NSUInteger)maxBytes {
     if (self = [super init]) {
         self.maxTotalSize = maxBytes;
-        [self removeAll];
+        [self removeAllUpTo:-1];
     }
     return self;
 }
@@ -30,12 +30,16 @@
     return self.lastWriteTs;
 }
 
-- (void)removeAll {
+- (void)removeAllUpTo:(NSInteger)lastIdx {
     @synchronized(self.buffers) {
         if(self.buffers == nil){
             self.buffers = [[NSMutableArray alloc] initWithCapacity:100];
         }else{
-            [self.buffers removeAllObjects];
+            if(lastIdx < 0){
+                [self.buffers removeAllObjects];
+            }else{
+                [self.buffers removeObjectsAtIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, lastIdx)]];
+            }
         }
         self.firstWriteTs = nil;
         self.curTotalSize = 0;
@@ -80,18 +84,26 @@
     return buffOffset;
 }
 
-- (NSData*)readCurrentData:(BOOL)andReset {
+- (NSData*)readCurrentDataUpTo:(NSInteger)lastIdx andReset:(BOOL)andReset {
     if([self size] == 0){
         return [[NSData alloc] init];
     }
     NSMutableData* md = [[NSMutableData alloc] initWithCapacity:[self size]];
     @synchronized(self.buffers) {
+        NSInteger maxBlocks2consume = lastIdx;
         for(NSData* block in self.buffers){
             [md appendData:block];
+            if(maxBlocks2consume>0){
+                maxBlocks2consume--;
+                if(maxBlocks2consume == 0){
+                    // stop!
+                    break;
+                }
+            }
         }
-    }
-    if(andReset){
-        [self removeAll];
+        if(andReset){
+            [self removeAllUpTo:lastIdx];
+        }
     }
     return md;
 }

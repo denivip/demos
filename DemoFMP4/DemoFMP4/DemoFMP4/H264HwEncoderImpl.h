@@ -12,8 +12,9 @@
 @optional
 - (void)inmemEncodeStart;
 - (void)inmemEncodeStop;
-- (void)inmemOnBeforeIFrame;
-- (void)inmemSpsPps:(NSData*)sps pps:(NSData*)pps;
+- (id)inmemGetStateToken;
+- (BOOL)inmemOnBeforeIFrame:(id)stateToken;
+- (void)inmemSpsPps:(NSData*)spspps;
 - (void)inmemEncodedVideoData:(NSData*)data isKeyFrame:(BOOL)isKeyFrame;
 - (void)inmemEncodedAudioData:(NSData*)data;
 @end

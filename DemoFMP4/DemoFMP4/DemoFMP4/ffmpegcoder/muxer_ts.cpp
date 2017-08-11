@@ -134,7 +134,7 @@ AddAacTrack(AP4_Movie*            movie,
                 AP4_Size to_feed = bytes_read;
                 result = parser.Feed(input_buffer, &to_feed);
                 if (AP4_FAILED(result)) {
-                    fprintf(stderr, "ERROR: parser.Feed() failed (%d)\n", result);
+                    printf( "ERROR: parser.Feed() failed (%d)\n", result);
                     return NULL;
                 }
             } else {
@@ -173,7 +173,8 @@ AddH264Track(AP4_Movie*            movie,
              const AP4_UI08* buffer, AP4_Size size,
              AP4_Array<AP4_UI32>&  brands,
              //SampleFileStorage&    sample_storage
-             AP4_MemoryByteStream& sample_storage)
+             AP4_MemoryByteStream& sample_storage,
+             float trackDurationMs)
 {
     AP4_Result result;
     AP4_ByteStream* input = new AP4_MemoryByteStream(buffer, size);
@@ -190,7 +191,7 @@ AddH264Track(AP4_Movie*            movie,
     // parse the input
     AP4_AvcFrameParser parser;
     for (;;) {
-        bool eos;
+        bool eos = false;
         unsigned char input_buffer[4096];
         AP4_Size bytes_in_buffer = 0;
         result = input->ReadPartial(input_buffer, sizeof(input_buffer), bytes_in_buffer);
@@ -199,7 +200,7 @@ AddH264Track(AP4_Movie*            movie,
         } else if (result == AP4_ERROR_EOS) {
             eos = true;
         } else {
-            fprintf(stderr, "ERROR: failed to read from input file\n");
+            printf( "ERROR: failed to read from input file\n");
             break;
         }
         AP4_Size offset = 0;
@@ -215,7 +216,7 @@ AddH264Track(AP4_Movie*            movie,
                                  access_unit_info,
                                  eos);
             if (AP4_FAILED(result)) {
-                fprintf(stderr, "ERROR: Feed() failed (%d)\n", result);
+                printf( "ERROR: Feed() failed (%d)\n", result);
                 break;
             }
             if (access_unit_info.nal_units.ItemCount()) {
@@ -289,7 +290,7 @@ AddH264Track(AP4_Movie*            movie,
         }
     }
     if (sps == NULL) {
-        fprintf(stderr, "ERROR: no sequence parameter set found in video\n");
+        printf( "ERROR: no sequence parameter set found in video\n");
         input->Release();
         return NULL;
     }
@@ -332,6 +333,9 @@ AddH264Track(AP4_Movie*            movie,
     AP4_UI32 movie_timescale      = AP4_MUX_TIMESCALE;
     AP4_UI32 media_timescale      = video_frame_rate;
     AP4_UI64 video_track_duration = AP4_ConvertTime(1000*sample_table->GetSampleCount(), media_timescale, movie_timescale);
+    if(trackDurationMs > 0.01f){
+        video_track_duration = trackDurationMs;
+    }
     AP4_UI64 video_media_duration = 1000*sample_table->GetSampleCount();
     
     // create a video track
@@ -559,11 +563,11 @@ int avMuxH264AacTS(const AP4_UI08* vbuff, int64_t vbuff_len,
     AP4_MemoryByteStream* sample_storage = new AP4_MemoryByteStream();
     AP4_Track* video_track = NULL;
     AP4_Track* audio_track = NULL;
-    if(vbuff_len > 0){
-        video_track = AddH264Track(NULL/*input_movie*/, vbuff, (AP4_Size)vbuff_len, brands, *sample_storage);
-    }
     if(abuff_len > 0){
         audio_track = AddAacTrack(NULL/*input_movie*/, abuff, (AP4_Size)abuff_len, *sample_storage);
+    }
+    if(vbuff_len > 0){
+        video_track = AddH264Track(NULL/*input_movie*/, vbuff, (AP4_Size)vbuff_len, brands, *sample_storage, 0.0f);//audio_track?audio_track->GetDurationMs():0.0f
     }
     printf("avMuxH264AacTS: preparing TS, video_track: %fs, audio_track: %fs\n", video_track?video_track->GetDurationMs()/1000.0f:0.0f, audio_track?audio_track->GetDurationMs()/1000.0f:0.0f);
     // open the output

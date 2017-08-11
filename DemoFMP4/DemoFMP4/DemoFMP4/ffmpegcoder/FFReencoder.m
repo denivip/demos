@@ -21,22 +21,22 @@ dispatch_queue_t ffReencoderDispatchQueue;
     return totalDuration;
 }
 
-+(BOOL)muxVideoBuffer:(CBCircularData*)video audioBuffer:(CBCircularData*)audio completion:(MuxCompletionBlock)onok {
-    NSUInteger totallen = video.size;
++(BOOL)muxVideoBuffer:(NSData*)vpkts_buff audioBuffer:(NSData*)apkts_buff completion:(MuxCompletionBlock)onok {
+    NSUInteger totallen = vpkts_buff.length;
     if(totallen == 0){
         return NO;
     }
     @autoreleasepool {
         //NSLog(@"muxVideoBuffer video %lu (%@-%@), audio %lu (%@-%@)",video.dataBuffers.count,video.firstWriteTs,video.lastWriteTs,audio.dataBuffers.count,audio.firstWriteTs,audio.lastWriteTs);
-        NSData* vpkts_buff = [video readCurrentData:NO];
-        NSData* apkts_buff = [audio readCurrentData:NO];
+        //NSData* vpkts_buff = [video readCurrentData:NO];
+        //NSData* apkts_buff = [audio readCurrentData:NO];
         dispatch_async(ffReencoderDispatchQueue, ^{
             int code = noErr;
             int64_t moov_data_size = 0;
             void* moov_data_bytes = NULL;
             int64_t moof_data_size = 0;
             void* moof_data_bytes = NULL;
-            code = avMuxH264AacTS(vpkts_buff.bytes, [vpkts_buff length],
+            code = avMuxH264AacMP4(vpkts_buff.bytes, [vpkts_buff length],
                                   apkts_buff.bytes, [apkts_buff length],
                                   &moov_data_bytes, &moov_data_size,
                                   &moof_data_bytes, &moof_data_size);

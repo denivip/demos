@@ -13,10 +13,10 @@
 @property (strong) NSDate* lastWriteTs;
 @property (assign) NSInteger flags;
 - (instancetype)initWithDepth:(NSUInteger)maxBytes;
-- (NSData*)readCurrentData:(BOOL)andReset;
+- (NSData*)readCurrentDataUpTo:(NSInteger)lastIdx andReset:(BOOL)andReset;
 - (NSData*)readData:(NSUInteger)offset length:(NSInteger)len;
 - (NSUInteger)writeData:(NSData*)dt;
-- (void)removeAll;
+- (void)removeAllUpTo:(NSInteger)lastIdx;
 - (NSDate*)getLastModified;
 - (NSUInteger)size;
 - (NSUInteger)sizeCap;

@@ -363,9 +363,7 @@ AddH264Track(AP4_Movie&            movie,
     return track;
 }
 
-static AP4_UI32 moofs_sequence_number = 1;// global!!! important (seq->unique)
-static AP4_UI64 moofs_duration = 0;
-int avMuxH264Aac(const AP4_UI08* vbuff, int64_t vbuff_len,
+int avMuxH264AacMP4(const AP4_UI08* vbuff, int64_t vbuff_len,
                  const AP4_UI08* abuff, int64_t abuff_len,
                  void** moov_outbuff, int64_t* moov_outbuff_len,
                  void** moof_outbuff, int64_t* moof_outbuff_len) {
@@ -396,7 +394,7 @@ int avMuxH264Aac(const AP4_UI08* vbuff, int64_t vbuff_len,
     if(abuff_len > 0){
         atrack = AddAacTrack(*input_movie, abuff, (AP4_Size)abuff_len, *sample_storage);
     }
-    
+    printf("avMuxH264AacMP4: preparing TS, video_track: %fs, audio_track: %fs\n", vtrack?vtrack->GetDurationMs()/1000.0f:0.0f, atrack?atrack->GetDurationMs()/1000.0f:0.0f);
     AP4_ByteStream* output = NULL;
     output = new AP4_MemoryByteStream();
     // create a multimedia file

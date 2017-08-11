@@ -1,5 +1,5 @@
 //  Copyright (c) 2017 DENIVIP Group. All rights reserved.
-//
+// https://mobisoftinfotech.com/resources/mguide/h264-encode-decode-using-videotoolbox/
 
 #import <Foundation/Foundation.h>
 #import "H264HwEncoderImpl.h"
@@ -8,6 +8,8 @@
 static const int kSamplesPerFrame = 1024;
 static const int kAACFrequency = 44100;
 static const int kAACFrequencyAdtsId = 4;
+//static int inmemFlush = 0;
+
 
 @import VideoToolbox;
 @import AVFoundation;
@@ -22,8 +24,8 @@ static const int kAACFrequencyAdtsId = 4;
     
     CMSampleTimingInfo* timingInfo;
     int frameCount;
-    NSData *sps;
-    NSData *pps;
+    //NSData *sps;
+    //NSData *pps;
 }
 @synthesize error;
 
@@ -34,8 +36,8 @@ static const int kAACFrequencyAdtsId = 4;
         aEncodingSession = nil;
         aQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
         frameCount = 0;
-        sps = NULL;
-        pps = NULL;
+        //sps = NULL;
+        //pps = NULL;
     }
     return self;
 }
@@ -127,42 +129,44 @@ static const int kAACFrequencyAdtsId = 4;
         int ww = [[self.videoSettings objectForKey:AVVideoWidthKey] intValue];
         int hh = [[self.videoSettings objectForKey:AVVideoHeightKey] intValue];
         // video compression
-        result = VTCompressionSessionCreate(NULL, ww, hh, kCMVideoCodecType_H264, NULL, NULL, NULL, encodeVideo_didCompressH264, (__bridge void *)(self),  &vEncodingSession);
+        result = VTCompressionSessionCreate(NULL, ww, hh, kCMVideoCodecType_H264, NULL, NULL, NULL, NULL, NULL,  &vEncodingSession);// encodeVideo_didCompressH264  (__bridge void *)(self)
         if (result != noErr)
         {
-            NSLog(@"H264: Unable to create a H264 session");
+            NSLog(@"H264: Unable to create a H264 session %d", result);
             error = @"H264: Unable to create a H264 session";
             return;
-            
         }
+        NSLog(@"H264: VTCompressionSessionCreate %d", (int)result);
+
         // Set the properties
-        const int v = AP4_MUX_DEFAULT_VIDEO_FRAME_RATE;
-        CFNumberRef ref = CFNumberCreate(NULL, kCFNumberSInt32Type, &v);
-        VTSessionSetProperty(vEncodingSession, kVTCompressionPropertyKey_ExpectedFrameRate, ref);
+        const int efr_v = AP4_MUX_DEFAULT_VIDEO_FRAME_RATE;
+        CFNumberRef efr_ref = CFNumberCreate(NULL, kCFNumberSInt32Type, &efr_v);
+        VTSessionSetProperty(vEncodingSession, kVTCompressionPropertyKey_ExpectedFrameRate, efr_ref);
         
         BOOL useBaseline = NO;
-        CFStringRef profileLevel = useBaseline ? kVTProfileLevel_H264_Baseline_AutoLevel : kVTProfileLevel_H264_Main_AutoLevel;//kVTProfileLevel_H264_High_AutoLevel
-        VTSessionSetProperty(vEncodingSession, kVTCompressionPropertyKey_ProfileLevel, profileLevel);
+        CFStringRef pl_ref = useBaseline ? kVTProfileLevel_H264_Baseline_AutoLevel : kVTProfileLevel_H264_Main_AutoLevel;//kVTProfileLevel_H264_High_AutoLevel
+        VTSessionSetProperty(vEncodingSession, kVTCompressionPropertyKey_ProfileLevel, pl_ref);
         if(!useBaseline) {
             VTSessionSetProperty(vEncodingSession, kVTCompressionPropertyKey_H264EntropyMode, kVTH264EntropyMode_CABAC);
         }
         VTSessionSetProperty(vEncodingSession , kVTCompressionPropertyKey_AllowFrameReordering, kCFBooleanFalse);
         VTSessionSetProperty(vEncodingSession, kVTCompressionPropertyKey_RealTime, kCFBooleanTrue);
-        //int real_keyframe_interval = 2;
-        //VTSessionSetProperty(EncodingSession, kVTCompressionPropertyKey_MaxKeyFrameIntervalDuration, (__bridge CFTypeRef)@(real_keyframe_interval));
-        //VTSessionSetProperty(EncodingSession, kVTCompressionPropertyKey_MaxKeyFrameInterval, 240);
-        // if(err == noErr) {
-        // m_compressionSession = session;
-        //
-        // const int32_t v = m_fps * 2; // 2-second kfi
-        //
-        // CFNumberRef ref = CFNumberCreate(NULL, kCFNumberSInt32Type, &v);
-        // err = VTSessionSetProperty(session, kVTCompressionPropertyKey_MaxKeyFrameInterval, ref);
-        // CFRelease(ref);
-        // }
         
         
-        NSLog(@"H264: VTCompressionSessionCreate %d", (int)result);
+        const int mkf_v = AP4_MUX_DEFAULT_VIDEO_FRAME_RATE*2;
+        CFNumberRef mkf_ref = CFNumberCreate(NULL, kCFNumberSInt32Type, &mkf_v);
+        result = VTSessionSetProperty(vEncodingSession, kVTCompressionPropertyKey_MaxKeyFrameInterval, mkf_ref);
+        if (result != noErr){
+            NSLog(@"H264: Unable to set kVTCompressionPropertyKey_MaxKeyFrameInterval %d", (int)result);
+        }
+        
+        //const int mfd_v = 1;
+        //CFNumberRef mfd_ref = CFNumberCreate(NULL, kCFNumberSInt32Type, &mfd_v);
+        //result = VTSessionSetProperty(vEncodingSession, kVTCompressionPropertyKey_MaxFrameDelayCount, mfd_ref);
+        //if (result != noErr){// -12900 https://stackoverflow.com/questions/29510311/how-to-set-maxh264slicebytes-property-of-vtcompressionsession
+        //    NSLog(@"H264: Unable to set kVTCompressionPropertyKey_MaxFrameDelayCount %d", (int)result);
+        //}
+
         // Tell the encoder to start encoding
         VTCompressionSessionPrepareToEncodeFrames(vEncodingSession);
         self.isActive++;
@@ -171,23 +175,9 @@ static const int kAACFrequencyAdtsId = 4;
     return YES;
 }
 
-void encodeVideo_didCompressH264(void *outputCallbackRefCon, void *sourceFrameRefCon, OSStatus status, VTEncodeInfoFlags infoFlags,
-                     CMSampleBufferRef sampleBuffer )
+BOOL isSampleBufferContainIFrame(CMSampleBufferRef sampleBuffer)
 {
-    if (status != 0) return;
-    
-    if (!CMSampleBufferDataIsReady(sampleBuffer))
-    {
-        return;
-    }
-    //CMTime pts = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
-    //CMTime dts = CMSampleBufferGetDecodeTimeStamp(sampleBuffer);
-    H264HwEncoderImpl* encoder = (__bridge H264HwEncoderImpl*)outputCallbackRefCon;
-    
-    // Check if we have got a key frame first
     BOOL isIFrame = NO;
-    BOOL isPps = NO;
-    BOOL isSps = NO;
     BOOL isDependendOnOther = NO;
     CFArrayRef attachmentsArray = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, 0);
     if (CFArrayGetCount(attachmentsArray)) {
@@ -203,42 +193,68 @@ void encodeVideo_didCompressH264(void *outputCallbackRefCon, void *sourceFrameRe
         keyExists = CFDictionaryGetValueIfPresent(dict,
                                                   kCMSampleAttachmentKey_DependsOnOthers,
                                                   (const void **)&depOthers);
-        // An I-Frame is a sync frame
         isDependendOnOther = keyExists && CFBooleanGetValue(depOthers);
     }
     //bool keyframe = !CFDictionaryContainsKey( (CFArrayGetValueAtIndex(CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, true), 0)), kCMSampleAttachmentKey_NotSync);
+    return isIFrame;
+}
+
+void encodeVideo_didCompressH264(void *outputCallbackRefCon, void *sourceFrameRefCon, OSStatus status, VTEncodeInfoFlags infoFlags,
+                     CMSampleBufferRef sampleBuffer, BOOL isIFrame)
+{
+    //if(inmemFlush>0){NSLog(@"encodeVideo_didCompressH264 - before");}
+    if (status != 0 || !CMSampleBufferDataIsReady(sampleBuffer))
+    {
+        return;
+    }
+    //CMTime pts = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
+    //CMTime dts = CMSampleBufferGetDecodeTimeStamp(sampleBuffer);
+    H264HwEncoderImpl* encoder = (__bridge H264HwEncoderImpl*)outputCallbackRefCon;
+    
+    // Check if we have got a key frame first
     if (isIFrame)
     {
-        if (encoder->_delegate)
-        {
-            [encoder->_delegate inmemOnBeforeIFrame];
-        }
-        CMFormatDescriptionRef vformat = CMSampleBufferGetFormatDescription(sampleBuffer);
-        // CFDictionaryRef extensionDict = CMFormatDescriptionGetExtensions(format);
-        // Get the extensions
-        // From the extensions get the dictionary with key "SampleDescriptionExtensionAtoms"
-        // From the dict, get the value for the key "avcC"
-        size_t sparameterSetSize, sparameterSetCount;
-        const uint8_t *sparameterSet;
-        OSStatus statusCode = CMVideoFormatDescriptionGetH264ParameterSetAtIndex(vformat, 0, &sparameterSet, &sparameterSetSize, &sparameterSetCount, 0 );
-        if (statusCode == noErr)
-        {
-            isSps = YES;
-            // Found sps and now check for pps
-            size_t pparameterSetSize, pparameterSetCount;
-            const uint8_t *pparameterSet;
-            OSStatus statusCode = CMVideoFormatDescriptionGetH264ParameterSetAtIndex(vformat, 1, &pparameterSet, &pparameterSetSize, &pparameterSetCount, 0 );
-            if (statusCode == noErr)
-            {
-                isPps = YES;
-                // Found pps
-                encoder->sps = [NSData dataWithBytes:sparameterSet length:sparameterSetSize];
-                encoder->pps = [NSData dataWithBytes:pparameterSet length:pparameterSetSize];
-                if (encoder->_delegate)
-                {
-                    [encoder->_delegate inmemSpsPps:encoder->sps pps:encoder->pps];
-                }
-            }
+//        CMFormatDescriptionRef vformat = CMSampleBufferGetFormatDescription(sampleBuffer);
+//        size_t sparameterSetSize, sparameterSetCount;
+//        const uint8_t *sparameterSet;
+//        OSStatus statusCode = CMVideoFormatDescriptionGetH264ParameterSetAtIndex(vformat, 0, &sparameterSet, &sparameterSetSize, &sparameterSetCount, 0 );
+//        if (statusCode == noErr)
+//        {
+//            isSps = YES;
+//            // Found sps and now check for pps
+//            size_t pparameterSetSize, pparameterSetCount;
+//            const uint8_t *pparameterSet;
+//            OSStatus statusCode = CMVideoFormatDescriptionGetH264ParameterSetAtIndex(vformat, 1, &pparameterSet, &pparameterSetSize, &pparameterSetCount, 0 );
+//            if (statusCode == noErr)
+//            {
+//                isPps = YES;
+//                // Found pps
+//                encoder->sps = [NSData dataWithBytes:sparameterSet length:sparameterSetSize];
+//                encoder->pps = [NSData dataWithBytes:pparameterSet length:pparameterSetSize];
+//                if (encoder->_delegate)
+//                {
+//                    [encoder->_delegate inmemSpsPps:encoder->sps pps:encoder->pps];
+//                }
+//            }
+//        }
+        CMFormatDescriptionRef description = CMSampleBufferGetFormatDescription(sampleBuffer);
+        size_t numberOfParameterSets;
+        CMVideoFormatDescriptionGetH264ParameterSetAtIndex(description,
+                                                           0, NULL, NULL,
+                                                           &numberOfParameterSets,
+                                                           NULL);
+        for (int i = 0; i < numberOfParameterSets; i++) {
+            const uint8_t *parameterSetPointer;
+            size_t parameterSetLength;
+            CMVideoFormatDescriptionGetH264ParameterSetAtIndex(description,
+                                                               i,
+                                                               &parameterSetPointer,
+                                                               &parameterSetLength,
+                                                               NULL, NULL);
+            
+            // Write the parameter set to the elementary stream
+            NSData* spspps = [NSData dataWithBytes:parameterSetPointer length:parameterSetLength];
+            [encoder->_delegate inmemSpsPps:spspps];
         }
     }
     size_t length, totalLength;
@@ -264,6 +280,7 @@ void encodeVideo_didCompressH264(void *outputCallbackRefCon, void *sourceFrameRe
         }
     }
     //NSLog(@"Frame: mixed %i %i %i, parsed %li of %li", isIFrame?1:0, isPps?1:0, isSps?1:0, bufferOffset, totalLength);
+    //if(inmemFlush>0){NSLog(@"encodeVideo_didCompressH264 - after");}
 }
 
 OSStatus encodeAudio_inInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNumberDataPackets, AudioBufferList *ioData, AudioStreamPacketDescription **outDataPacketDescription, void *inUserData)
@@ -323,6 +340,9 @@ OSStatus encodeAudio_inInputDataProc(AudioConverterRef inAudioConverter, UInt32 
             NSLog(@"H264: AudioConverterFillComplexBuffer failed with %d", (int)statusCode);
             error = @"H264: AudioConverterFillComplexBuffer failed";
         }else{
+            //CMTime audioChunkPts = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
+            //NSLog(@"H264: encodeAudio pts %f", CMTimeGetSeconds(audioChunkPts));
+            
             NSData *rawAAC = [NSData dataWithBytes:outAudioBufferList.mBuffers[0].mData length:outAudioBufferList.mBuffers[0].mDataByteSize];
             NSData *adtsHeader = [self encodeAudio_adtsDataForPacketLength:rawAAC.length];
             NSMutableData *fullData = [NSMutableData dataWithData:adtsHeader];
@@ -346,15 +366,35 @@ OSStatus encodeAudio_inInputDataProc(AudioConverterRef inAudioConverter, UInt32 
         // Get the CV Image buffer
         CVImageBufferRef imageBuffer = (CVImageBufferRef)CMSampleBufferGetImageBuffer(sampleBuffer);
         // Create properties
-        CMTime presentationTimeStamp = CMTimeMake(frameCount, 1000);
-        //CMTime duration = CMTimeMake(1, DURATION);
+        CMTime presentationTimeStamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);//CMTimeMake(frameCount, 1000);
+        CMTime chunkDuration = kCMTimeInvalid;
+        static CFTimeInterval tsLast = -1;
+        CFTimeInterval ts = CACurrentMediaTime();
+        if(tsLast > 0){
+            chunkDuration = CMTimeMakeWithSeconds(ts-tsLast, 1000);
+        }
+        tsLast = ts;
+        id delegateStateToken = nil;
+        if(self->_delegate)
+        {
+            delegateStateToken = [self->_delegate inmemGetStateToken];
+        }
+        
+        NSDictionary *properties = @{(__bridge NSString *)kVTEncodeFrameOptionKey_ForceKeyFrame: @YES};
         VTEncodeInfoFlags flags;
-        // Pass it to the encoder
-        OSStatus statusCode = VTCompressionSessionEncodeFrame(vEncodingSession,
-                                                              imageBuffer,
-                                                              presentationTimeStamp,
-                                                              kCMTimeInvalid,
-                                                              NULL, NULL, &flags);
+        OSStatus statusCode = VTCompressionSessionEncodeFrameWithOutputHandler(vEncodingSession, imageBuffer,
+                                                              presentationTimeStamp, chunkDuration, (__bridge CFDictionaryRef)properties, &flags,
+                                                                ^(OSStatus status, VTEncodeInfoFlags infoFlags, CMSampleBufferRef sampleBuffer ){
+                                                                    //CMTime videoChunkPts = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
+                                                                    //NSLog(@"H264: encodeVideo pts %f", CMTimeGetSeconds(videoChunkPts));
+                                                                    BOOL isIFrame = isSampleBufferContainIFrame(sampleBuffer);
+                                                                    if (isIFrame && self->_delegate)
+                                                                    {
+                                                                        // Flushing current buffers if needed
+                                                                        [self->_delegate inmemOnBeforeIFrame:delegateStateToken];
+                                                                    }
+                                                                    encodeVideo_didCompressH264( (__bridge void *)(self), nil, status, infoFlags, sampleBuffer, isIFrame);
+                                                                });
         // Check for error
         if (statusCode != noErr) {
             NSLog(@"H264: VTCompressionSessionEncodeFrame failed with %d", (int)statusCode);
@@ -368,6 +408,18 @@ OSStatus encodeAudio_inInputDataProc(AudioConverterRef inAudioConverter, UInt32 
             return;
         }
         CFRelease(sampleBuffer);
+        OSStatus result = VTCompressionSessionCompleteFrames(vEncodingSession, kCMTimeIndefinite);
+        if (result != noErr) {
+            NSLog(@"H264: VTCompressionSessionCompleteFrames failed with %d", (int)result);
+            error = @"H264: VTCompressionSessionCompleteFrames failed";
+            
+            // End the session
+            VTCompressionSessionInvalidate(vEncodingSession);
+            CFRelease(vEncodingSession);
+            vEncodingSession = NULL;
+            error = NULL;
+            return;
+        }
         //NSLog(@"H264: VTCompressionSessionEncodeFrame Success");
     });
     

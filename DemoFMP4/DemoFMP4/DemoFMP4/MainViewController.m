@@ -266,7 +266,6 @@ static int needStartCapture = 0;
 
 - (void)vision:(PBJVision *)vision didCaptureSampleHandled:(CMSampleBufferRef)sampleBuffer {
     double capturedVideoSeconds = self.vision.capturedVideoSeconds;
-
     if(true){
         if(capturedVideoSeconds >= self.lastHandledVideoSeconds){
             self.lastHandledVideoSeconds = capturedVideoSeconds+CHUNK_DURATION_SEC;
@@ -275,10 +274,6 @@ static int needStartCapture = 0;
         return;
     }
     if(capturedVideoSeconds >= CHUNK_DURATION_SEC && self.vision.flushPending == 0){
-//        NSString* actualPreset = ???;
-//        if(![self.vision.captureSessionPreset isEqualToString:actualPreset]){
-//            [self.vision setCaptureSessionPreset:actualPreset];
-//        }
         [self.vision flushVideoCapture:NO];
     }
 }
@@ -315,7 +310,24 @@ static int needStartCapture = 0;
     }
 }
 
-- (BOOL)vision:(PBJVision *)vision canFlushInmemVideo:(CBCircularData *)video andAudio:(CBCircularData *)audio {
+- (BOOL)vision:(PBJVision *)vision dataToFlushInmemVideo:(NSData*)video andAudio:(NSData*)audio {
+    [FFReencoder muxVideoBuffer:video audioBuffer:audio completion:^(NSData* moov_dat, NSData* moof_dat){
+        @synchronized (self) {
+            //if(self.currentMP4 == nil){
+            self.currentMP4 = [[NSMutableData alloc] init];
+            if(moov_dat != nil){
+                [self.currentMP4 appendData:moov_dat];
+            }
+            //};
+            if(moof_dat != nil){
+                [self.currentMP4 appendData:moof_dat];
+            }
+        };
+    }];
+    return YES;
+}
+
+- (BOOL)vision:(PBJVision *)vision canFlushInmemVideo:(NSInteger)dataAvailable {
     CFTimeInterval ts = CACurrentMediaTime();
     if(self.prevFlushedChunkTs < 1.0){
         self.prevFlushedChunkTs = ts;
@@ -329,22 +341,8 @@ static int needStartCapture = 0;
 //        self.prevFlushedChunkTs = ts;
 //        return YES;
 //    }
-    if([video size] > 0 && ts - self.prevFlushedChunkTs > kChunkedFileMinChunkLenSec && self.isRecording > 0)
-    {
+    if(self.isRecording > 0 && ts - self.prevFlushedChunkTs > kChunkedFileMinChunkLenSec && dataAvailable > 0){
         self.prevFlushedChunkTs = ts;
-        [FFReencoder muxVideoBuffer:video audioBuffer:audio completion:^(NSData* moov_dat, NSData* moof_dat){
-            @synchronized (self) {
-                //if(self.currentMP4 == nil){
-                self.currentMP4 = [[NSMutableData alloc] init];
-                if(moov_dat != nil){
-                    [self.currentMP4 appendData:moov_dat];
-                }
-                //};
-                if(moof_dat != nil){
-                    [self.currentMP4 appendData:moof_dat];
-                }
-            };
-        }];
         return YES;
     }
     return NO;

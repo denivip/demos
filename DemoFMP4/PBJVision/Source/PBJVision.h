@@ -318,5 +318,6 @@ static CGFloat const PBJVideoBitRate1280x750 = 5000000 * 8;
 - (void)vision:(PBJVision *)vision didCaptureSampleHandled:(CMSampleBufferRef)sampleBuffer;
 
 // inmem encoding
-- (BOOL)vision:(PBJVision *)vision canFlushInmemVideo:(CBCircularData *)video andAudio:(CBCircularData *)audio;
+- (BOOL)vision:(PBJVision *)vision canFlushInmemVideo:(NSInteger)dataAvailable;
+- (BOOL)vision:(PBJVision *)vision dataToFlushInmemVideo:(NSData*)video andAudio:(NSData*)audio;
 @end

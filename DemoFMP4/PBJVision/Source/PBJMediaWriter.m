@@ -343,7 +343,6 @@
 }
 
 #pragma mark - sample buffer writing
-
 - (void)writeSampleBuffer:(CMSampleBufferRef)sampleBuffer withMediaTypeVideo:(BOOL)video
 {
     if (!CMSampleBufferDataIsReady(sampleBuffer)) {

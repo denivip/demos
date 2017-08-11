@@ -2438,6 +2438,7 @@ typedef void (^PBJVisionBlock)();
     //    DLog("%@: skipping buffer, nothing to write, %p", _mediaWriter, sampleBuffer);
     //}
     
+    [self automaticallyFlushInmemBuffersIfNeeded];
     [self _automaticallyEndCaptureIfMaximumDurationReachedWithSampleBuffer:sampleBuffer];
     
     if ([_delegate respondsToSelector:@selector(vision:didCaptureSampleHandled:)]) {
@@ -2761,6 +2762,23 @@ typedef void (^PBJVisionBlock)();
 {
 }
 
+- (void)automaticallyFlushInmemBuffersIfNeeded {
+    if([self.delegate vision:self canFlushInmemVideo:self.liveVideoH264Buffer.size+self.liveAudioAACBuffer.size]){
+        self.liveVideoH264Buffer.flags |= 1;
+    }
+}
+
+- (void)inmemResetEncoders
+{
+    if(self.liveVideoH264Buffer == nil || self.liveAudioAACBuffer == nil){
+        self.liveVideoH264Buffer = [[CBCircularData alloc] initWithDepth:PBJVisionInmemBufferMb*1000000];
+        self.liveAudioAACBuffer = [[CBCircularData alloc] initWithDepth:PBJVisionInmemBufferMb*1000000];
+    }
+    self.liveVideoH264Buffer.flags = 0;
+    [self.liveVideoH264Buffer removeAllUpTo:-1];
+    [self.liveAudioAACBuffer removeAllUpTo:-1];
+}
+
 - (void)inmemEncodeStart
 {
     //NSError* error = nil;
@@ -2778,37 +2796,37 @@ typedef void (^PBJVisionBlock)();
     [self inmemResetEncoders];
 }
 
-- (void)inmemTryFlushBuffers
+- (id)inmemGetStateToken
 {
-    if(self.liveVideoH264Buffer.flags == 0 || self.liveVideoH264Buffer.size < 1 || self.liveAudioAACBuffer.size < 1){
-        return;
-    }
-    if([self.delegate vision:self canFlushInmemVideo:self.liveVideoH264Buffer andAudio:self.liveAudioAACBuffer]){
-        [self inmemResetEncoders];
-    }
+    return @[@(self.liveVideoH264Buffer.dataBuffers.count),@(self.liveAudioAACBuffer.dataBuffers.count)];
 }
 
-- (void)inmemOnBeforeIFrame {
-    [self inmemTryFlushBuffers];
+- (BOOL)inmemOnBeforeIFrame:(id)stateToken {
+    if(self.liveVideoH264Buffer.flags == 1){
+        //[video readCurrentData:NO];
+        self.liveVideoH264Buffer.flags = 0;
+        NSArray* stateTk = (NSArray*)stateToken;
+        //NSLog(@"inmemOnBeforeIFrame %lu %lu (actual: %lu %lu)",[stateTk[0] integerValue], [stateTk[1] integerValue], self.liveVideoH264Buffer.dataBuffers.count,self.liveAudioAACBuffer.dataBuffers.count);
+        NSData* video = [self.liveVideoH264Buffer readCurrentDataUpTo:[stateTk[0] integerValue] andReset:YES];
+        NSData* audio = [self.liveAudioAACBuffer readCurrentDataUpTo:[stateTk[1] integerValue] andReset:YES];
+        [self.delegate vision:self dataToFlushInmemVideo:video andAudio:audio];
+        //NSLog(@"inmemOnBeforeIFrame (actual: %lu %lu)", self.liveVideoH264Buffer.dataBuffers.count,self.liveAudioAACBuffer.dataBuffers.count);
+        return YES;
+    }
+    return NO;
 }
 
-- (void)inmemSpsPps:(NSData*)sps pps:(NSData*)pps
+- (void)inmemSpsPps:(NSData*)spspps
 {
-    const char nalHeadrBytes[] = "\x00\x00\x00\x01";
-    size_t length = (sizeof nalHeadrBytes) - 1;//string literals have implicit trailing '\0'
-    NSData *ByteHeader = [NSData dataWithBytes:nalHeadrBytes length:length];
-    NSMutableData *line1 = [NSMutableData data];
-    [line1 appendData:ByteHeader];
-    [line1 appendData:sps];
-    //NSLog(@"inmem HAL sps: %@", sps);
-    [self.liveVideoH264Buffer writeData:line1];
-    
-    NSMutableData *line2 = [NSMutableData data];
-    [line2 appendData:ByteHeader];
-    [line2 appendData:pps];
-    //NSLog(@"inmem HAL pps: %@", pps);
-    [self.liveVideoH264Buffer writeData:line2];
-    self.liveVideoH264Buffer.flags |= 1;
+    if(spspps != nil){
+        const char nalHeadrBytes[] = "\x00\x00\x00\x01";
+        size_t length = (sizeof nalHeadrBytes) - 1;//string literals have implicit trailing '\0'
+        NSData *ByteHeader = [NSData dataWithBytes:nalHeadrBytes length:length];
+        NSMutableData *line1 = [NSMutableData data];
+        [line1 appendData:ByteHeader];
+        [line1 appendData:spspps];
+        [self.liveVideoH264Buffer writeData:line1];
+    }
 }
 
 - (void)inmemEncodedVideoData:(NSData*)data isKeyFrame:(BOOL)isKeyFrame
@@ -2819,27 +2837,12 @@ typedef void (^PBJVisionBlock)();
     NSMutableData *line3 = [NSMutableData data];
     [line3 appendData:ByteHeader];
     [line3 appendData:data];
-    //Byte* p = (Byte*)data.bytes;
-    //int nalType = (p[0] & 0x1f);
-    //NSLog(@"inmem HAL data: nalType=%i, %@", nalType, data);
     [self.liveVideoH264Buffer writeData:line3];
 }
 
 - (void)inmemEncodedAudioData:(NSData*)data
 {
     [self.liveAudioAACBuffer writeData:data];
-}
-
-- (void)inmemResetEncoders
-{
-    //NSLog(@"Frame: RESETTING BUFFERS");
-    if(self.liveVideoH264Buffer == nil || self.liveAudioAACBuffer == nil){
-        self.liveVideoH264Buffer = [[CBCircularData alloc] initWithDepth:PBJVisionInmemBufferMb*1000000];
-        self.liveAudioAACBuffer = [[CBCircularData alloc] initWithDepth:PBJVisionInmemBufferMb*1000000];
-    }
-    self.liveVideoH264Buffer.flags = 0;
-    [self.liveVideoH264Buffer removeAll];
-    [self.liveAudioAACBuffer removeAll];
 }
 
 #pragma mark - sample buffer processing
