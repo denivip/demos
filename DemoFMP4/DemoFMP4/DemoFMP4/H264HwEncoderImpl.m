@@ -143,7 +143,7 @@ static const int kAACFrequencyAdtsId = 4;
         CFNumberRef efr_ref = CFNumberCreate(NULL, kCFNumberSInt32Type, &efr_v);
         VTSessionSetProperty(vEncodingSession, kVTCompressionPropertyKey_ExpectedFrameRate, efr_ref);
         
-        BOOL useBaseline = NO;
+        BOOL useBaseline = YES;
         CFStringRef pl_ref = useBaseline ? kVTProfileLevel_H264_Baseline_AutoLevel : kVTProfileLevel_H264_Main_AutoLevel;//kVTProfileLevel_H264_High_AutoLevel
         VTSessionSetProperty(vEncodingSession, kVTCompressionPropertyKey_ProfileLevel, pl_ref);
         if(!useBaseline) {
@@ -254,8 +254,9 @@ void encodeVideo_didCompressH264(void *outputCallbackRefCon, void *sourceFrameRe
                                                                NULL, NULL);
             
             // Write the parameter set to the elementary stream
-            NSData* spspps = [NSData dataWithBytes:parameterSetPointer length:parameterSetLength];
-            [encoder->_delegate inmemSpsPps:spspps];
+            NSData* data = [NSData dataWithBytes:parameterSetPointer length:parameterSetLength];
+            [encoder->_delegate inmemSpsPps:data];
+            //NSLog(@"encodeVideo: %i. Adding NALU sps/pps %i", vchunkSamplesCount, ((unsigned char*)data.bytes)[0]&0x1F);
         }
     }
     size_t length, totalLength;
@@ -269,16 +270,16 @@ void encodeVideo_didCompressH264(void *outputCallbackRefCon, void *sourceFrameRe
             // Read the NAL unit length
             uint32_t NALUnitLength = 0;
             memcpy(&NALUnitLength, dataPointer + bufferOffset, AVCCHeaderLength);
-            
             // Convert the length value from Big-endian to Little-endian
             NALUnitLength = CFSwapInt32BigToHost(NALUnitLength);
-            
+            vchunkSamplesCount++;
             NSData* data = [[NSData alloc] initWithBytes:(dataPointer + bufferOffset + AVCCHeaderLength) length:NALUnitLength];
+            //if(data.length>0){
+            //    NSLog(@"encodeVideo: %i. Adding NALU type %i, len %ld", vchunkSamplesCount, ((unsigned char*)data.bytes)[0]&0x1F, data.length);
+            //}else{NSLog(@"encodeVideo: %i. WTF??? Empty NALU", vchunkSamplesCount);}
             [encoder->_delegate inmemEncodedVideoData:data isKeyFrame:isIFrame];
-            
             // Move to the next NAL unit in the block buffer
             bufferOffset += AVCCHeaderLength + NALUnitLength;
-            vchunkSamplesCount++;
         }
     }
     //NSLog(@"Frame: mixed %i %i %i, parsed %li of %li", isIFrame?1:0, isPps?1:0, isSps?1:0, bufferOffset, totalLength);

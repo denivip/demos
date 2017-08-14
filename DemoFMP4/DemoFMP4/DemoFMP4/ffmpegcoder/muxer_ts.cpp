@@ -190,7 +190,7 @@ AddH264Track(AP4_Movie*            movie,
     AP4_AvcFrameParser parser;
     for (;;) {
         bool eos = false;
-        unsigned char input_buffer[4096*100];// TEST
+        unsigned char input_buffer[4096];
         AP4_Size bytes_in_buffer = 0;
         result = input->ReadPartial(input_buffer, sizeof(input_buffer), bytes_in_buffer);
         if (AP4_SUCCEEDED(result)) {
@@ -254,7 +254,7 @@ AddH264Track(AP4_Movie*            movie,
             
             offset += bytes_consumed;
             bytes_in_buffer -= bytes_consumed;
-        } while (bytes_in_buffer);// || found_access_unit // TEST
+        } while (bytes_in_buffer || found_access_unit);
         if (eos) break;
     }
     // adjust the sample CTS/DTS offsets based on the sample orders

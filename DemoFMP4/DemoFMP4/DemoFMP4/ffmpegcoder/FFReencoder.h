@@ -3,6 +3,8 @@
 
 #import "PBJVision.h"
 #import "CBCircularData.h"
+#include "muxers.h"
+
 #ifndef DemoFMP4_FFReencoder_h
 #define DemoFMP4_FFReencoder_h
 
