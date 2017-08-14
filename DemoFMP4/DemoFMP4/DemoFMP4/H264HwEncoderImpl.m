@@ -199,6 +199,7 @@ BOOL isSampleBufferContainIFrame(CMSampleBufferRef sampleBuffer)
     return isIFrame;
 }
 
+static int vchunkSamplesCount = 0;
 void encodeVideo_didCompressH264(void *outputCallbackRefCon, void *sourceFrameRefCon, OSStatus status, VTEncodeInfoFlags infoFlags,
                      CMSampleBufferRef sampleBuffer, BOOL isIFrame)
 {
@@ -277,6 +278,7 @@ void encodeVideo_didCompressH264(void *outputCallbackRefCon, void *sourceFrameRe
             
             // Move to the next NAL unit in the block buffer
             bufferOffset += AVCCHeaderLength + NALUnitLength;
+            vchunkSamplesCount++;
         }
     }
     //NSLog(@"Frame: mixed %i %i %i, parsed %li of %li", isIFrame?1:0, isPps?1:0, isSps?1:0, bufferOffset, totalLength);
@@ -391,7 +393,10 @@ OSStatus encodeAudio_inInputDataProc(AudioConverterRef inAudioConverter, UInt32 
                                                                     if (isIFrame && self->_delegate)
                                                                     {
                                                                         // Flushing current buffers if needed
-                                                                        [self->_delegate inmemOnBeforeIFrame:delegateStateToken];
+                                                                        if([self->_delegate inmemOnBeforeIFrame:delegateStateToken]){
+                                                                            NSLog(@"current vchunkSamplesCount: %i", vchunkSamplesCount);
+                                                                            vchunkSamplesCount = 0;
+                                                                        }
                                                                     }
                                                                     encodeVideo_didCompressH264( (__bridge void *)(self), nil, status, infoFlags, sampleBuffer, isIFrame);
                                                                 });

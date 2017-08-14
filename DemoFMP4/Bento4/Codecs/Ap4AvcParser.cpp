@@ -35,6 +35,8 @@
 /*----------------------------------------------------------------------
 |   debugging
 +---------------------------------------------------------------------*/
+//#define AP4_AVC_PARSER_ENABLE_DEBUG
+
 #if defined(AP4_AVC_PARSER_ENABLE_DEBUG)
 #define DBG_PRINTF_0(_x0) printf(_x0)
 #define DBG_PRINTF_1(_x0, _x1) printf(_x0, _x1)

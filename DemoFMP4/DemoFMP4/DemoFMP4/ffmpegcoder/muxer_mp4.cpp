@@ -365,7 +365,6 @@ AddH264Track(AP4_Movie&            movie,
 
 int avMuxH264AacMP4(const AP4_UI08* vbuff, int64_t vbuff_len,
                  const AP4_UI08* abuff, int64_t abuff_len,
-                 void** moov_outbuff, int64_t* moov_outbuff_len,
                  void** moof_outbuff, int64_t* moof_outbuff_len) {
     
     // create the movie object to hold the tracks
@@ -410,9 +409,6 @@ int avMuxH264AacMP4(const AP4_UI08* vbuff, int64_t vbuff_len,
     *moof_outbuff = malloc((size_t)size);
     output->Read(*moof_outbuff, (AP4_Size)size);
     *moof_outbuff_len = size;
-
-    *moov_outbuff = NULL;
-    *moov_outbuff_len = 0;
 
     // cleanup
     sample_storage->Release();

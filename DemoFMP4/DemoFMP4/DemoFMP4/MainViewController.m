@@ -311,14 +311,9 @@ static int needStartCapture = 0;
 }
 
 - (BOOL)vision:(PBJVision *)vision dataToFlushInmemVideo:(NSData*)video andAudio:(NSData*)audio {
-    [FFReencoder muxVideoBuffer:video audioBuffer:audio completion:^(NSData* moov_dat, NSData* moof_dat){
+    [FFReencoder muxVideoBuffer:video audioBuffer:audio completion:^(NSData* moof_dat){
         @synchronized (self) {
-            //if(self.currentMP4 == nil){
             self.currentMP4 = [[NSMutableData alloc] init];
-            if(moov_dat != nil){
-                [self.currentMP4 appendData:moov_dat];
-            }
-            //};
             if(moof_dat != nil){
                 [self.currentMP4 appendData:moof_dat];
             }

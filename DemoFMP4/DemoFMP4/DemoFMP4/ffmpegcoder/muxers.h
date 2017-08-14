@@ -15,12 +15,10 @@ extern "C" {
 
 int avMuxH264AacMP4(const unsigned char* vbuff, int64_t vbuff_len,
                  const unsigned char* abuff, int64_t abuff_len,
-                 void** moov_outbuff, int64_t* moov_outbuff_len,
                  void** moof_outbuff, int64_t* moof_outbuff_len);
 
 int avMuxH264AacTS(const unsigned char* vbuff, int64_t vbuff_len,
                  const unsigned char* abuff, int64_t abuff_len,
-                 void** moov_outbuff, int64_t* moov_outbuff_len,
                  void** moof_outbuff, int64_t* moof_outbuff_len);
 #ifdef __cplusplus
 }

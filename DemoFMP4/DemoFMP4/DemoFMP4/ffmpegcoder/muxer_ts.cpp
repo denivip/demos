@@ -172,9 +172,7 @@ static AP4_Track*
 AddH264Track(AP4_Movie*            movie,
              const AP4_UI08* buffer, AP4_Size size,
              AP4_Array<AP4_UI32>&  brands,
-             //SampleFileStorage&    sample_storage
-             AP4_MemoryByteStream& sample_storage,
-             float trackDurationMs)
+             AP4_MemoryByteStream& sample_storage)
 {
     AP4_Result result;
     AP4_ByteStream* input = new AP4_MemoryByteStream(buffer, size);
@@ -192,7 +190,7 @@ AddH264Track(AP4_Movie*            movie,
     AP4_AvcFrameParser parser;
     for (;;) {
         bool eos = false;
-        unsigned char input_buffer[4096];
+        unsigned char input_buffer[4096*100];// TEST
         AP4_Size bytes_in_buffer = 0;
         result = input->ReadPartial(input_buffer, sizeof(input_buffer), bytes_in_buffer);
         if (AP4_SUCCEEDED(result)) {
@@ -246,17 +244,19 @@ AddH264Track(AP4_Movie*            movie,
                 
                 // remember the sample order
                 sample_orders.Append(SampleOrder(access_unit_info.decode_order, access_unit_info.display_order));
+                //printf("!!%i ",access_unit_info.nal_units.ItemCount());
                 
                 // free the memory buffers
                 access_unit_info.Reset();
+            }else{
+                //printf("???? ");
             }
             
             offset += bytes_consumed;
             bytes_in_buffer -= bytes_consumed;
-        } while (bytes_in_buffer || found_access_unit);
+        } while (bytes_in_buffer);// || found_access_unit // TEST
         if (eos) break;
     }
-    
     // adjust the sample CTS/DTS offsets based on the sample orders
     if (sample_orders.ItemCount() > 1) {
         unsigned int start = 0;
@@ -333,11 +333,9 @@ AddH264Track(AP4_Movie*            movie,
     AP4_UI32 movie_timescale      = AP4_MUX_TIMESCALE;
     AP4_UI32 media_timescale      = video_frame_rate;
     AP4_UI64 video_track_duration = AP4_ConvertTime(1000*sample_table->GetSampleCount(), media_timescale, movie_timescale);
-    if(trackDurationMs > 0.01f){
-        video_track_duration = trackDurationMs;
-    }
     AP4_UI64 video_media_duration = 1000*sample_table->GetSampleCount();
     
+    printf("\nA4 vchunkSamplesCount: %i spsa %i ppsa %i\n", sample_table->GetSampleCount(),sps_array.ItemCount(),pps_array.ItemCount());
     // create a video track
     AP4_Track* track = new AP4_Track(AP4_Track::TYPE_VIDEO,
                                      sample_table,
@@ -545,7 +543,6 @@ WriteSamples(AP4_ByteStream*                  output,
 
 int avMuxH264AacTS(const AP4_UI08* vbuff, int64_t vbuff_len,
                  const AP4_UI08* abuff, int64_t abuff_len,
-                 void** moov_outbuff, int64_t* moov_outbuff_len,
                  void** moof_outbuff, int64_t* moof_outbuff_len) {
     
     int Options_pmt_pid                    = 0x100;
@@ -563,11 +560,11 @@ int avMuxH264AacTS(const AP4_UI08* vbuff, int64_t vbuff_len,
     AP4_MemoryByteStream* sample_storage = new AP4_MemoryByteStream();
     AP4_Track* video_track = NULL;
     AP4_Track* audio_track = NULL;
+    if(vbuff_len > 0){
+        video_track = AddH264Track(NULL/*input_movie*/, vbuff, (AP4_Size)vbuff_len, brands, *sample_storage);//audio_track?audio_track->GetDurationMs():0.0f
+    }
     if(abuff_len > 0){
         audio_track = AddAacTrack(NULL/*input_movie*/, abuff, (AP4_Size)abuff_len, *sample_storage);
-    }
-    if(vbuff_len > 0){
-        video_track = AddH264Track(NULL/*input_movie*/, vbuff, (AP4_Size)vbuff_len, brands, *sample_storage, 0.0f);//audio_track?audio_track->GetDurationMs():0.0f
     }
     printf("avMuxH264AacTS: preparing TS, video_track: %fs, audio_track: %fs\n", video_track?video_track->GetDurationMs()/1000.0f:0.0f, audio_track?audio_track->GetDurationMs()/1000.0f:0.0f);
     // open the output
@@ -665,8 +662,6 @@ int avMuxH264AacTS(const AP4_UI08* vbuff, int64_t vbuff_len,
     *moof_outbuff_len = size;
     
 end:
-    *moov_outbuff = NULL;
-    *moov_outbuff_len = 0;
 
     // cleanup
     sample_storage->Release();

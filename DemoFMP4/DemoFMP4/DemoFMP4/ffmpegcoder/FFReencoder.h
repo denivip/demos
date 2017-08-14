@@ -6,7 +6,7 @@
 #ifndef DemoFMP4_FFReencoder_h
 #define DemoFMP4_FFReencoder_h
 
-typedef void (^MuxCompletionBlock)(NSData* moov_dat, NSData* moof_dat);
+typedef void (^MuxCompletionBlock)(NSData* moof_dat);
 
 @interface FFReencoder : NSObject
 +(double)getSampleDuration:(CMSampleBufferRef)sampleBuffer;
