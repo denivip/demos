@@ -57,8 +57,12 @@ const AP4_UI32 AP4_SAMPLE_FORMAT_AVC1 = AP4_ATOM_TYPE('a','v','c','1');
 const AP4_UI32 AP4_SAMPLE_FORMAT_AVC2 = AP4_ATOM_TYPE('a','v','c','2');
 const AP4_UI32 AP4_SAMPLE_FORMAT_AVC3 = AP4_ATOM_TYPE('a','v','c','3');
 const AP4_UI32 AP4_SAMPLE_FORMAT_AVC4 = AP4_ATOM_TYPE('a','v','c','4');
+const AP4_UI32 AP4_SAMPLE_FORMAT_DVAV = AP4_ATOM_TYPE('d','v','a','v');
+const AP4_UI32 AP4_SAMPLE_FORMAT_DVA1 = AP4_ATOM_TYPE('d','v','a','1');
 const AP4_UI32 AP4_SAMPLE_FORMAT_HVC1 = AP4_ATOM_TYPE('h','v','c','1');
 const AP4_UI32 AP4_SAMPLE_FORMAT_HEV1 = AP4_ATOM_TYPE('h','e','v','1');
+const AP4_UI32 AP4_SAMPLE_FORMAT_DVHE = AP4_ATOM_TYPE('d','v','h','e');
+const AP4_UI32 AP4_SAMPLE_FORMAT_DVH1 = AP4_ATOM_TYPE('d','v','h','1');
 const AP4_UI32 AP4_SAMPLE_FORMAT_ALAC = AP4_ATOM_TYPE('a','l','a','c');
 const AP4_UI32 AP4_SAMPLE_FORMAT_OWMA = AP4_ATOM_TYPE('o','w','m','a');
 const AP4_UI32 AP4_SAMPLE_FORMAT_OVC1 = AP4_ATOM_TYPE('o','v','c','1');
@@ -89,6 +93,7 @@ const AP4_UI32 AP4_SAMPLE_FORMAT_TWOS = AP4_ATOM_TYPE('t','w','o','s');
 const AP4_UI32 AP4_SAMPLE_FORMAT_TX3G = AP4_ATOM_TYPE('t','x','3','g');
 const AP4_UI32 AP4_SAMPLE_FORMAT_VC_1 = AP4_ATOM_TYPE('v','c','-','1');
 const AP4_UI32 AP4_SAMPLE_FORMAT_XML_ = AP4_ATOM_TYPE('x','m','l',' ');
+const AP4_UI32 AP4_SAMPLE_FORMAT_STPP = AP4_ATOM_TYPE('s','t','p','p');
 
 const char*
 AP4_GetFormatName(AP4_UI32 format);
@@ -122,7 +127,10 @@ class AP4_SampleDescription
     Type                  GetType()    const { return m_Type;    }
     AP4_UI32              GetFormat()  const { return m_Format;  }
     const AP4_AtomParent& GetDetails() const { return m_Details; }
-    
+
+    // info
+    virtual AP4_Result GetCodecString(AP4_String& codec);
+
     // factories
     virtual AP4_Atom* ToAtom() const;
 
@@ -309,6 +317,7 @@ public:
     
     // inherited from AP4_SampleDescription
     virtual AP4_Atom* ToAtom() const;
+    virtual AP4_Result GetCodecString(AP4_String& codec);
     
     // static methods
     static const char* GetProfileName(AP4_UI08 profile) {
@@ -343,6 +352,31 @@ public:
                               const char*     compressor_name,
                               AP4_AtomParent* details);
     
+    AP4_HevcSampleDescription(AP4_UI32                         format,
+                              AP4_UI16                         width,
+                              AP4_UI16                         height,
+                              AP4_UI16                         depth,
+                              const char*                      compressor_name,
+                              AP4_UI08                         general_profile_space,
+                              AP4_UI08                         general_tier_flag,
+                              AP4_UI08                         general_profile,
+                              AP4_UI32                         general_profile_compatibility_flags,
+                              AP4_UI64                         general_constraint_indicator_flags,
+                              AP4_UI08                         general_level,
+                              AP4_UI32                         min_spatial_segmentation,
+                              AP4_UI08                         parallelism_type,
+                              AP4_UI08                         chroma_format,
+                              AP4_UI08                         luma_bit_depth,
+                              AP4_UI08                         chroma_bit_depth,
+                              AP4_UI16                         average_frame_rate,
+                              AP4_UI08                         constant_frame_rate,
+                              AP4_UI08                         num_temporal_layers,
+                              AP4_UI08                         temporal_id_nested,
+                              AP4_UI08                         nalu_length_size,
+                              const AP4_Array<AP4_DataBuffer>& video_parameters,
+                              const AP4_Array<AP4_DataBuffer>& sequence_parameters,
+                              const AP4_Array<AP4_DataBuffer>& picture_parameters);
+    
     // accessors
     AP4_UI08 GetConfigurationVersion()             const { return m_HvccAtom->GetConfigurationVersion(); }
     AP4_UI08 GetGeneralProfileSpace()              const { return m_HvccAtom->GetGeneralProfileSpace(); }
@@ -366,6 +400,7 @@ public:
     
     // inherited from AP4_SampleDescription
     virtual AP4_Atom* ToAtom() const;
+    virtual AP4_Result GetCodecString(AP4_String& codec);
     
     // static methods
     static const char* GetProfileName(AP4_UI08 profile_space, AP4_UI08 profile) {
@@ -476,7 +511,8 @@ public:
                                    AP4_UI32              max_bitrate,
                                    AP4_UI32              avg_bitrate);
 
-    // methods
+    // inherited from AP4_SampleDescription
+    virtual AP4_Result GetCodecString(AP4_String& codec);
     AP4_Atom* ToAtom() const;
 
     /**

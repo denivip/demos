@@ -2,7 +2,7 @@
 |
 |    AP4 - Common Encryption support
 |
-|    Copyright 2002-2011 Axiomatic Systems, LLC
+|    Copyright 2002-2017 Axiomatic Systems, LLC
 |
 |
 |    This file is part of Bento4/AP4 (MP4 Atom Processing Library).
@@ -51,11 +51,14 @@ class AP4_CencSampleInfoTable;
 |   constants
 +---------------------------------------------------------------------*/
 const AP4_UI32 AP4_PROTECTION_SCHEME_TYPE_CENC = AP4_ATOM_TYPE('c','e','n','c');
+const AP4_UI32 AP4_PROTECTION_SCHEME_TYPE_CENS = AP4_ATOM_TYPE('c','e','n','s');
+const AP4_UI32 AP4_PROTECTION_SCHEME_TYPE_CBC1 = AP4_ATOM_TYPE('c','b','c','1');
+const AP4_UI32 AP4_PROTECTION_SCHEME_TYPE_CBCS = AP4_ATOM_TYPE('c','b','c','s');
 const AP4_UI32 AP4_PROTECTION_SCHEME_VERSION_CENC_10 = 0x00010000;
 
-const AP4_UI32 AP4_CENC_ALGORITHM_ID_NONE = 0; 
-const AP4_UI32 AP4_CENC_ALGORITHM_ID_CTR  = 1; 
-const AP4_UI32 AP4_CENC_ALGORITHM_ID_CBC  = 2; 
+const AP4_UI32 AP4_CENC_CIPHER_NONE         = 0;
+const AP4_UI32 AP4_CENC_CIPHER_AES_128_CTR  = 1;
+const AP4_UI32 AP4_CENC_CIPHER_AES_128_CBC  = 2;
 
 const AP4_UI32 AP4_CENC_SAMPLE_ENCRYPTION_FLAG_OVERRIDE_TRACK_ENCRYPTION_DEFAULTS = 1;
 const AP4_UI32 AP4_CENC_SAMPLE_ENCRYPTION_FLAG_USE_SUB_SAMPLE_ENCRYPTION          = 2;
@@ -63,7 +66,10 @@ const AP4_UI32 AP4_CENC_SAMPLE_ENCRYPTION_FLAG_USE_SUB_SAMPLE_ENCRYPTION        
 typedef enum {
     AP4_CENC_VARIANT_PIFF_CTR,
     AP4_CENC_VARIANT_PIFF_CBC,
-    AP4_CENC_VARIANT_MPEG
+    AP4_CENC_VARIANT_MPEG_CENC,
+    AP4_CENC_VARIANT_MPEG_CBC1,
+    AP4_CENC_VARIANT_MPEG_CENS,
+    AP4_CENC_VARIANT_MPEG_CBCS
 } AP4_CencVariant;
 
 /*----------------------------------------------------------------------
@@ -76,27 +82,41 @@ public:
     virtual ~AP4_CencTrackEncryption() {}
     
     // methods
+    AP4_Result Parse(AP4_ByteStream& stream);
     AP4_Result DoInspectFields(AP4_AtomInspector& inspector);
     AP4_Result DoWriteFields(AP4_ByteStream& stream);
     
     // accessors
-    AP4_UI32        GetDefaultAlgorithmId() { return m_DefaultAlgorithmId; }
-    AP4_UI08        GetDefaultIvSize()      { return m_DefaultIvSize;      }
-    const AP4_UI08* GetDefaultKid()         { return m_DefaultKid;         }
+    AP4_UI32        GetDefaultIsProtected()     { return m_DefaultIsProtected;     }
+    AP4_UI08        GetDefaultPerSampleIvSize() { return m_DefaultPerSampleIvSize; }
+    AP4_UI08        GetDefaultConstantIvSize()  { return m_DefaultConstantIvSize;  }
+    const AP4_UI08* GetDefaultConstantIv()      { return m_DefaultConstantIv;      }
+    const AP4_UI08* GetDefaultKid()             { return m_DefaultKid;             }
+    AP4_UI08        GetDefaultCryptByteBlock()  { return m_DefaultCryptByteBlock;  }
+    AP4_UI08        GetDefaultSkipByteBlock()   { return m_DefaultSkipByteBlock;   }
     
 protected:
     // constructors
-    AP4_CencTrackEncryption();
-    AP4_CencTrackEncryption(AP4_ByteStream& stream);
-    AP4_CencTrackEncryption(AP4_UI32        default_algorithm_id,
-                            AP4_UI08        default_iv_size,
-                            const AP4_UI08* default_kid);
+    AP4_CencTrackEncryption(AP4_UI08 version);
+    AP4_CencTrackEncryption(AP4_UI08        version,
+                            AP4_UI08        default_is_protected,
+                            AP4_UI08        default_per_sample_iv_size,
+                            const AP4_UI08* default_kid,
+                            AP4_UI08        default_constant_iv_size = 0,
+                            const AP4_UI08* default_constant_iv = NULL,
+                            AP4_UI08        default_crypt_byte_block = 0,
+                            AP4_UI08        default_skip_byte_block = 0);
     
 private:
     // members
-    AP4_UI32 m_DefaultAlgorithmId;
-    AP4_UI08 m_DefaultIvSize;
-    AP4_UI08 m_DefaultKid[16];    
+    AP4_UI08 m_Version_; // cannot be called m_Version because it would conflict with AP4_Atom::m_Version
+    AP4_UI08 m_DefaultIsProtected;
+    AP4_UI08 m_DefaultPerSampleIvSize;
+    AP4_UI08 m_DefaultConstantIvSize;
+    AP4_UI08 m_DefaultConstantIv[16];
+    AP4_UI08 m_DefaultKid[16];
+    AP4_UI08 m_DefaultCryptByteBlock;
+    AP4_UI08 m_DefaultSkipByteBlock;
 };
 
 /*----------------------------------------------------------------------
@@ -115,29 +135,48 @@ public:
     // accessors
     AP4_Atom&       GetOuter()              { return m_Outer;           }
     AP4_UI32        GetAlgorithmId()        { return m_AlgorithmId;     }
-    AP4_UI08        GetIvSize()             { return m_IvSize;          }
-    AP4_Result      SetIvSize(AP4_UI08 iv_size);
+    AP4_UI08        GetPerSampleIvSize()    { return m_PerSampleIvSize; }
+    AP4_Result      SetPerSampleIvSize(AP4_UI08 iv_size);
+    AP4_UI08        GetConstantIvSize()     { return m_ConstantIvSize;  }
+    AP4_Result      SetConstantIvSize(AP4_UI08 iv_size);
+    AP4_UI08        GetCryptByteBlock()     { return m_CryptByteBlock;  }
+    AP4_UI08        GetSkipByteBlock()      { return m_SkipByteBlock;   }
+    const AP4_UI08* GetConstantIv()         { return m_ConstantIv;      }
     const AP4_UI08* GetKid()                { return m_Kid;             }
     AP4_Cardinal    GetSampleInfoCount()    { return m_SampleInfoCount; }
     AP4_Result      AddSampleInfo(const AP4_UI08* iv, AP4_DataBuffer& subsample_info);
     AP4_Result      SetSampleInfosSize(AP4_Size size);
-    AP4_Result      CreateSampleInfoTable(AP4_Size                  default_iv_size,
+    AP4_Result      CreateSampleInfoTable(AP4_UI08                  flags,
+                                          AP4_UI08                  default_crypt_byte_block,
+                                          AP4_UI08                  default_skip_byte_block,
+                                          AP4_UI08                  default_per_sample_iv_size,
+                                          AP4_UI08                  default_constant_iv_size,
+                                          const AP4_UI08*           default_constant_iv,
                                           AP4_CencSampleInfoTable*& table);
     
 protected:
     // constructors
-    AP4_CencSampleEncryption(AP4_Atom& outer, AP4_UI08 iv_size);
+    AP4_CencSampleEncryption(AP4_Atom&       outer,
+                             AP4_UI08        per_sample_iv_size,
+                             AP4_UI08        constant_iv_size = 0,
+                             const AP4_UI08* constant_iv = NULL,
+                             AP4_UI08        crypt_byte_block = 0,
+                             AP4_UI08        skip_byte_block = 0);
     AP4_CencSampleEncryption(AP4_Atom& outer, AP4_Size size, AP4_ByteStream& stream);
     AP4_CencSampleEncryption(AP4_Atom&       outer,
                              AP4_UI32        algorithm_id,
-                             AP4_UI08        iv_size,
+                             AP4_UI08        per_sample_iv_size,
                              const AP4_UI08* kid);
     
 protected:
     // members
     AP4_Atom&      m_Outer;
     AP4_UI32       m_AlgorithmId;
-    AP4_UI08       m_IvSize;
+    AP4_UI08       m_PerSampleIvSize;
+    AP4_UI08       m_ConstantIvSize;
+    AP4_UI08       m_ConstantIv[16];
+    AP4_UI08       m_CryptByteBlock;
+    AP4_UI08       m_SkipByteBlock;
     AP4_UI08       m_Kid[16];    
     AP4_Cardinal   m_SampleInfoCount;
     AP4_DataBuffer m_SampleInfos;
@@ -152,7 +191,8 @@ public:
     // class methods
     static AP4_Result Create(AP4_ProtectedSampleDescription* sample_description,
                              AP4_ContainerAtom*              traf,
-                             AP4_UI32&                       algorithm_id,
+                             AP4_UI32&                       cipher_type,
+                             bool&                           reset_iv_at_each_subsample,
                              AP4_ByteStream&                 aux_info_data,
                              AP4_Position                    aux_info_data_offset,
                              AP4_CencSampleInfoTable*&       sample_info_table);
@@ -162,12 +202,18 @@ public:
                              AP4_SaioAtom*&                  saio,
                              AP4_SaizAtom*&                  saiz,
                              AP4_CencSampleEncryption*&      sample_encryption_atom,
-                             AP4_UI32&                       algorithm_id,
+                             AP4_UI32&                       cipher_type,
+                             bool&                           reset_iv_at_each_subsample,
                              AP4_ByteStream&                 aux_info_data,
                              AP4_Position                    aux_info_data_offset,
                              AP4_CencSampleInfoTable*&       sample_info_table);
                              
-    static AP4_Result Create(unsigned int              iv_size, 
+    static AP4_Result Create(AP4_UI08                  flags,
+                             AP4_UI08                  crypt_byte_block,
+                             AP4_UI08                  skip_byte_block,
+                             AP4_UI08                  per_sample_iv_size,
+                             AP4_UI08                  constant_iv_size,
+                             const AP4_UI08*           constant_iv,
                              AP4_ContainerAtom&        traf,
                              AP4_SaioAtom&             saio, 
                              AP4_SaizAtom&             saiz,
@@ -182,12 +228,18 @@ public:
                              AP4_CencSampleInfoTable*& sample_info_table);
     
     // constructor
-    AP4_CencSampleInfoTable(AP4_UI32 sample_count,
+    AP4_CencSampleInfoTable(AP4_UI08 flags,
+                            AP4_UI08 crypt_byte_block,
+                            AP4_UI08 skip_byte_block,
+                            AP4_UI32 sample_count,
                             AP4_UI08 iv_size);
     
     // methods
-    AP4_UI32        GetSampleCount() { return m_SampleCount; }
-    AP4_UI08        GetIvSize()      { return m_IvSize;      }
+    AP4_UI08        GetFlags()          { return m_Flags;          }
+    AP4_UI08        GetCryptByteBlock() { return m_CryptByteBlock; }
+    AP4_UI08        GetSkipByteBlock()  { return m_SkipByteBlock;  }
+    AP4_UI32        GetSampleCount()    { return m_SampleCount;    }
+    AP4_UI08        GetIvSize()         { return m_IvSize;         }
     AP4_Result      SetIv(AP4_Ordinal sample_index, const AP4_UI08* iv);
     const AP4_UI08* GetIv(AP4_Ordinal sample_index);
     AP4_Result      AddSubSampleData(AP4_Cardinal    subsample_count,
@@ -217,6 +269,9 @@ public:
     
 private:
     AP4_UI32                m_SampleCount;
+    AP4_UI08                m_Flags;
+    AP4_UI08                m_CryptByteBlock;
+    AP4_UI08                m_SkipByteBlock;
     AP4_UI08                m_IvSize;
     AP4_DataBuffer          m_IvData;
     AP4_Array<AP4_UI16>     m_BytesOfCleartextData;
@@ -237,7 +292,13 @@ private:
 |   +---------------+----------------+------------------------------------+
 |   | 4 bytes       | 32-bit integer | sample_count                       |
 |   +---------------+----------------+------------------------------------+
-|   | 4 bytes       | 32-bit integer | iv_size                            |
+|   | 1 byte        | 8-bit integer  | flags                              |
+|   +---------------+----------------+------------------------------------+
+|   | 1 byte        | 8-bit integer  | crypt_byte_block                   |
+|   +---------------+----------------+------------------------------------+
+|   | 1 byte        | 8-bit integer  | skip_byte_block                    |
+|   +---------------+----------------+------------------------------------+
+|   | 1 byte        | 8-bit integer  | iv_size                            |
 |   +---------------+----------------+------------------------------------+
 |
 |   repeat sample_count times:
@@ -273,7 +334,7 @@ private:
 |   | 4 bytes       | 32-bit integer | subsample_map_length[i]            |
 |   +---------------+----------------+------------------------------------+
 |
-|   NOTES: subsample_map_start[i] ans subsample_map_length[i] are, respecitvely,
+|   NOTES: subsample_map_start[i] ans subsample_map_length[i] are, respectively,
 |   the index and the length the i'th subsample map sequence in the
 |   bytes_of_cleartext_data anb bytes_of_encrypted_data arrays.
 |   For example, if we have:
@@ -296,8 +357,11 @@ class AP4_CencSampleEncrypter
 {
 public:
     // constructor and destructor
-    AP4_CencSampleEncrypter(AP4_StreamCipher* cipher) : m_Cipher(cipher) { 
-        AP4_SetMemory(m_Iv, 0, 16); 
+    AP4_CencSampleEncrypter(AP4_StreamCipher* cipher,
+                            bool              constant_iv) :
+        m_Cipher(cipher),
+        m_ConstantIv(constant_iv) {
+        AP4_SetMemory(m_Iv, 0, 16);
     };
     virtual ~AP4_CencSampleEncrypter();
 
@@ -318,6 +382,7 @@ public:
 protected:
     AP4_UI08          m_Iv[16];
     AP4_StreamCipher* m_Cipher;
+    bool              m_ConstantIv;
 };
 
 /*----------------------------------------------------------------------
@@ -327,8 +392,10 @@ class AP4_CencCtrSampleEncrypter : public AP4_CencSampleEncrypter
 {
 public:
     // constructor and destructor
-    AP4_CencCtrSampleEncrypter(AP4_StreamCipher* cipher, unsigned int iv_size) :
-        AP4_CencSampleEncrypter(cipher),
+    AP4_CencCtrSampleEncrypter(AP4_StreamCipher* cipher,
+                               bool              constant_iv,
+                               unsigned int      iv_size) :
+        AP4_CencSampleEncrypter(cipher, constant_iv),
         m_IvSize(iv_size) {}
 
     // methods
@@ -347,13 +414,85 @@ class AP4_CencCbcSampleEncrypter : public AP4_CencSampleEncrypter
 {
 public:
     // constructor and destructor
-    AP4_CencCbcSampleEncrypter(AP4_StreamCipher* cipher) :
-        AP4_CencSampleEncrypter(cipher) {}
+    AP4_CencCbcSampleEncrypter(AP4_StreamCipher* cipher,
+                               bool              constant_iv) :
+        AP4_CencSampleEncrypter(cipher, constant_iv) {}
 
     // methods
     virtual AP4_Result EncryptSampleData(AP4_DataBuffer& data_in,
                                          AP4_DataBuffer& data_out,
                                          AP4_DataBuffer& sample_infos);
+};
+
+/*----------------------------------------------------------------------
+|   AP4_CencSubSampleMapper
++---------------------------------------------------------------------*/
+class AP4_CencSubSampleMapper
+{
+public:
+    // constructor and destructor
+    AP4_CencSubSampleMapper(AP4_Size nalu_length_size, AP4_UI32 format) :
+        m_NaluLengthSize(nalu_length_size),
+        m_Format(format) {}
+    virtual ~AP4_CencSubSampleMapper() {}
+    
+    // methods
+    virtual AP4_Result GetSubSampleMap(AP4_DataBuffer&      sample_data,
+                                       AP4_Array<AP4_UI16>& bytes_of_cleartext_data, 
+                                       AP4_Array<AP4_UI32>& bytes_of_encrypted_data) = 0;
+
+protected:
+    // members
+    AP4_Size m_NaluLengthSize;
+    AP4_UI32 m_Format;
+};
+
+/*----------------------------------------------------------------------
+|   AP4_CencBasicSubSampleMapper
++---------------------------------------------------------------------*/
+class AP4_CencBasicSubSampleMapper : public AP4_CencSubSampleMapper
+{
+public:
+    // constructor and destructor
+    AP4_CencBasicSubSampleMapper(AP4_Size nalu_length_size, AP4_UI32 format) :
+        AP4_CencSubSampleMapper(nalu_length_size, format) {}
+    
+    // methods
+    virtual AP4_Result GetSubSampleMap(AP4_DataBuffer&      sample_data,
+                                       AP4_Array<AP4_UI16>& bytes_of_cleartext_data, 
+                                       AP4_Array<AP4_UI32>& bytes_of_encrypted_data);
+};
+
+/*----------------------------------------------------------------------
+|   AP4_CencAdvancedSubSampleMapper
++---------------------------------------------------------------------*/
+class AP4_CencAdvancedSubSampleMapper : public AP4_CencSubSampleMapper
+{
+public:
+    // constructor and destructor
+    AP4_CencAdvancedSubSampleMapper(AP4_Size nalu_length_size, AP4_UI32 format) :
+        AP4_CencSubSampleMapper(nalu_length_size, format) {}
+    
+    // methods
+    virtual AP4_Result GetSubSampleMap(AP4_DataBuffer&      sample_data,
+                                       AP4_Array<AP4_UI16>& bytes_of_cleartext_data, 
+                                       AP4_Array<AP4_UI32>& bytes_of_encrypted_data);
+};
+
+/*----------------------------------------------------------------------
+|   AP4_CencCbcsSubSampleMapper
++---------------------------------------------------------------------*/
+class AP4_CencCbcsSubSampleMapper : public AP4_CencSubSampleMapper
+{
+public:
+    // constructor and destructor
+    AP4_CencCbcsSubSampleMapper(AP4_Size nalu_length_size, AP4_UI32 format) :
+        AP4_CencSubSampleMapper(nalu_length_size, format) {}
+    
+    // methods
+    virtual AP4_Result GetSubSampleMap(AP4_DataBuffer&      sample_data,
+                                       AP4_Array<AP4_UI16>& bytes_of_cleartext_data, 
+                                       AP4_Array<AP4_UI32>& bytes_of_encrypted_data);
 };
 
 /*----------------------------------------------------------------------
@@ -363,16 +502,28 @@ class AP4_CencSubSampleEncrypter : public AP4_CencSampleEncrypter
 {
 public:
     // constructor and destructor
-    AP4_CencSubSampleEncrypter(AP4_StreamCipher* cipher,
-                               AP4_Size          nalu_length_size) :
-        AP4_CencSampleEncrypter(cipher),
-        m_NaluLengthSize(nalu_length_size) {}
+    AP4_CencSubSampleEncrypter(AP4_StreamCipher*        cipher,
+                               bool                     constant_iv,
+                               bool                     reset_iv_at_each_subsample,
+                               AP4_CencSubSampleMapper* subsample_mapper) :
+        AP4_CencSampleEncrypter(cipher, constant_iv),
+        m_ResetIvForEachSubsample(reset_iv_at_each_subsample),
+        m_SubSampleMapper(subsample_mapper) {}
+    virtual ~AP4_CencSubSampleEncrypter() {
+        delete m_SubSampleMapper;
+    }
 
     // methods
-    virtual bool UseSubSamples() { return true;}
-                                         
+    virtual bool UseSubSamples() { return true; }
+    virtual AP4_Result GetSubSampleMap(AP4_DataBuffer&      sample_data,
+                                       AP4_Array<AP4_UI16>& bytes_of_cleartext_data,
+                                       AP4_Array<AP4_UI32>& bytes_of_encrypted_data) {
+        return m_SubSampleMapper->GetSubSampleMap(sample_data, bytes_of_cleartext_data, bytes_of_encrypted_data);
+    }
+    
     // members
-    AP4_Size m_NaluLengthSize;
+    bool                     m_ResetIvForEachSubsample;
+    AP4_CencSubSampleMapper* m_SubSampleMapper;
 };
 
 /*----------------------------------------------------------------------
@@ -382,16 +533,18 @@ class AP4_CencCtrSubSampleEncrypter : public AP4_CencSubSampleEncrypter
 {
 public:
     // constructor and destructor
-    AP4_CencCtrSubSampleEncrypter(AP4_StreamCipher* cipher,
-                                  AP4_Size          nalu_length_size,
-                                  unsigned int      iv_size) :
-        AP4_CencSubSampleEncrypter(cipher, nalu_length_size),
+    AP4_CencCtrSubSampleEncrypter(AP4_StreamCipher*        cipher,
+                                  bool                     constant_iv,
+                                  bool                     reset_iv_at_each_subsample,
+                                  unsigned int             iv_size,
+                                  AP4_CencSubSampleMapper* subsample_mapper) :
+        AP4_CencSubSampleEncrypter(cipher,
+                                   constant_iv,
+                                   reset_iv_at_each_subsample,
+                                   subsample_mapper),
         m_IvSize(iv_size) {}
 
     // methods
-    virtual AP4_Result GetSubSampleMap(AP4_DataBuffer&      sample_data, 
-                                       AP4_Array<AP4_UI16>& bytes_of_cleartext_data, 
-                                       AP4_Array<AP4_UI32>& bytes_of_encrypted_data);
     virtual AP4_Result EncryptSampleData(AP4_DataBuffer& data_in,
                                          AP4_DataBuffer& data_out,
                                          AP4_DataBuffer& sample_infos);
@@ -407,14 +560,16 @@ class AP4_CencCbcSubSampleEncrypter : public AP4_CencSubSampleEncrypter
 {
 public:
     // constructor and destructor
-    AP4_CencCbcSubSampleEncrypter(AP4_StreamCipher* cipher,
-                                  AP4_Size          nalu_length_size) :
-        AP4_CencSubSampleEncrypter(cipher, nalu_length_size) {}
+    AP4_CencCbcSubSampleEncrypter(AP4_StreamCipher*        cipher,
+                                  bool                     constant_iv,
+                                  bool                     reset_iv_at_each_subsample,
+                                  AP4_CencSubSampleMapper* subsample_mapper) :
+        AP4_CencSubSampleEncrypter(cipher,
+                                   constant_iv,
+                                   reset_iv_at_each_subsample,
+                                   subsample_mapper) {}
 
     // methods
-    virtual AP4_Result GetSubSampleMap(AP4_DataBuffer&      sample_data, 
-                                       AP4_Array<AP4_UI16>& bytes_of_cleartext_data, 
-                                       AP4_Array<AP4_UI32>& bytes_of_encrypted_data);
     virtual AP4_Result EncryptSampleData(AP4_DataBuffer& data_in,
                                          AP4_DataBuffer& data_out,
                                          AP4_DataBuffer& sample_infos);
@@ -501,14 +656,19 @@ protected:
 class AP4_CencSingleSampleDecrypter
 {
 public:
-    static AP4_Result Create(AP4_UI32                        algorithm_id,
+    static AP4_Result Create(AP4_UI32                        cipher_type,
                              const AP4_UI08*                 key,
                              AP4_Size                        key_size,
+                             AP4_UI08                        crypt_byte_block,
+                             AP4_UI08                        skip_byte_block,
                              AP4_BlockCipherFactory*         block_cipher_factory,
+                             bool                            reset_iv_at_each_subsample,
                              AP4_CencSingleSampleDecrypter*& decrypter);
     
     // methods
-    AP4_CencSingleSampleDecrypter(AP4_StreamCipher* cipher) : m_Cipher(cipher), m_FullBlocksOnly(false) {}
+    AP4_CencSingleSampleDecrypter(AP4_StreamCipher* cipher) :
+        m_Cipher(cipher),
+        m_FullBlocksOnly(false) {}
     virtual ~AP4_CencSingleSampleDecrypter();
     virtual AP4_Result DecryptSampleData(AP4_DataBuffer& data_in,
                                          AP4_DataBuffer& data_out,
@@ -524,16 +684,20 @@ public:
                                          
                                          // array of <subsample_count> integers. NULL if subsample_count is 0
                                          const AP4_UI32* bytes_of_encrypted_data);  
-                                             
+    
 private:
     // constructor
-    AP4_CencSingleSampleDecrypter(AP4_StreamCipher* cipher, bool full_blocks_only) :
+    AP4_CencSingleSampleDecrypter(AP4_StreamCipher* cipher,
+                                  bool              full_blocks_only,
+                                  bool              reset_iv_at_each_subsample) :
         m_Cipher(cipher),
-        m_FullBlocksOnly(full_blocks_only) {}
+        m_FullBlocksOnly(full_blocks_only),
+        m_ResetIvAtEachSubsample(reset_iv_at_each_subsample) {}
 
     // members
     AP4_StreamCipher* m_Cipher;
     bool              m_FullBlocksOnly;
+    bool              m_ResetIvAtEachSubsample;
 };
 
 /*----------------------------------------------------------------------
@@ -564,10 +728,11 @@ public:
                              AP4_CencSampleDecrypter*&       decrypter);
 
     static AP4_Result Create(AP4_CencSampleInfoTable*  sample_info_table,
-                             AP4_UI32                  algorithm_id,
+                             AP4_UI32                  cipher_type,
                              const AP4_UI08*           key, 
                              AP4_Size                  key_size,
                              AP4_BlockCipherFactory*   block_cipher_factory,
+                             bool                      reset_iv_at_each_subsample,
                              AP4_CencSampleDecrypter*& decrypter);
     
     // methods
@@ -581,7 +746,7 @@ public:
     virtual AP4_Result DecryptSampleData(AP4_DataBuffer& data_in,
                                          AP4_DataBuffer& data_out,
                                          const AP4_UI08* iv);
-                                             
+    
 protected:
     AP4_CencSingleSampleDecrypter* m_SingleSampleDecrypter;
     AP4_CencSampleInfoTable*       m_SampleInfoTable;

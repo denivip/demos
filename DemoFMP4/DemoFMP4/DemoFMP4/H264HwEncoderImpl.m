@@ -382,19 +382,19 @@ OSStatus encodeAudio_inInputDataProc(AudioConverterRef inAudioConverter, UInt32 
             delegateStateToken = [self->_delegate inmemGetStateToken];
         }
         
-        NSDictionary *properties = @{(__bridge NSString *)kVTEncodeFrameOptionKey_ForceKeyFrame: @YES};
+        NSDictionary *properties = @{(__bridge NSString *)kVTEncodeFrameOptionKey_ForceKeyFrame: @YES};// TEST
         VTEncodeInfoFlags flags;
         OSStatus statusCode = VTCompressionSessionEncodeFrameWithOutputHandler(vEncodingSession, imageBuffer,
                                                               presentationTimeStamp, chunkDuration, (__bridge CFDictionaryRef)properties, &flags,
                                                                 ^(OSStatus status, VTEncodeInfoFlags infoFlags, CMSampleBufferRef sampleBuffer ){
                                                                     //CMTime videoChunkPts = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
-                                                                    //NSLog(@"H264: encodeVideo pts %f", CMTimeGetSeconds(videoChunkPts));
+                                                                    //NSLog(@"H264: encodeVideo vchunkSamplesCount: %i pts %f", vchunkSamplesCount, CMTimeGetSeconds(videoChunkPts));
                                                                     BOOL isIFrame = isSampleBufferContainIFrame(sampleBuffer);
                                                                     if (isIFrame && self->_delegate)
                                                                     {
                                                                         // Flushing current buffers if needed
                                                                         if([self->_delegate inmemOnBeforeIFrame:delegateStateToken]){
-                                                                            NSLog(@"current vchunkSamplesCount: %i", vchunkSamplesCount);
+                                                                            NSLog(@"Flushing, current vchunkSamplesCount: %i", vchunkSamplesCount);
                                                                             vchunkSamplesCount = 0;
                                                                         }
                                                                     }

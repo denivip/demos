@@ -94,7 +94,7 @@ static int needStartCapture = 0;
         self.vision.outputFormat = CAPTURE_ASPECT;
         self.vision.captureContainerFormat = (NSString*)RAW_CHUNK_CONTAINER;
         self.vision.inmemEncoding = PBJInmemEncodingExclusive;
-        [self.vision setCaptureSessionPreset: AVCaptureSessionPresetLow];
+        [self.vision setCaptureSessionPreset: AVCaptureSessionPresetLow];//kVTProfileLevel_H264_Baseline_AutoLevel AVCaptureSessionPresetHigh
         self.vision.additionalCompressionProperties = @{
                                                         AVVideoProfileLevelKey: AVVideoProfileLevelH264BaselineAutoLevel,
                                                         AVVideoAllowFrameReorderingKey: @NO,

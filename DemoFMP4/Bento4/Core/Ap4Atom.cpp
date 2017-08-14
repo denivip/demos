@@ -313,13 +313,16 @@ AP4_Atom::Clone()
     AP4_MemoryByteStream* mbs = new AP4_MemoryByteStream((AP4_Size)GetSize());
     
     // serialize to memory
-    if (AP4_FAILED(Write(*mbs))) goto end;
+    if (AP4_FAILED(Write(*mbs))) {
+        mbs->Release();
+        return NULL;
+    }
     
-    // create the clone for the serialized form
+    // create the clone from the serialized form
     mbs->Seek(0);
-    AP4_DefaultAtomFactory::Instance.CreateAtomFromStream(*mbs, clone);
+    AP4_DefaultAtomFactory atom_factory;
+    atom_factory.CreateAtomFromStream(*mbs, clone);
     
-end:
     // release the memory stream
     mbs->Release();
 
@@ -698,6 +701,20 @@ AP4_AtomParent::FindChild(const char* path,
 
     // not found
     return NULL;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_AtomParent::CopyChildren
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_AtomParent::CopyChildren(AP4_AtomParent& destination) const
+{
+    for (AP4_List<AP4_Atom>::Item* child = m_Children.FirstItem(); child; child=child->GetNext()) {
+        AP4_Atom* child_clone = child->GetData()->Clone();
+        destination.AddChild(child_clone);
+    }
+    
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------

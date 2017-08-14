@@ -60,10 +60,16 @@ AP4_PsshAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 /*----------------------------------------------------------------------
 |   AP4_PsshAtom::AP4_PsshAtom
 +---------------------------------------------------------------------*/
-AP4_PsshAtom::AP4_PsshAtom(const unsigned char* system_id) :
-    AP4_Atom(AP4_ATOM_TYPE_PSSH, AP4_FULL_ATOM_HEADER_SIZE+16+4, 0, 0)
+AP4_PsshAtom::AP4_PsshAtom(const unsigned char* system_id,
+                           const AP4_UI08*      kids,
+                           unsigned int         kid_count) :
+    AP4_Atom(AP4_ATOM_TYPE_PSSH, AP4_FULL_ATOM_HEADER_SIZE+16+4+((kids && kid_count)?4+16*kid_count:0), (kids && kid_count)?1:0, 0),
+    m_KidCount(kid_count)
 {
     AP4_CopyMemory(m_SystemId, system_id, 16);
+    if (kids && kid_count) {
+        m_Kids.SetData(kids, kid_count*16);
+    }
 }
 
 /*----------------------------------------------------------------------
@@ -235,7 +241,7 @@ AP4_PsshAtom::InspectFields(AP4_AtomInspector& inspector)
         if (AP4_CompareMemory(m_SystemId, AP4_MARLIN_PSSH_SYSTEM_ID, 16) == 0) {
             AP4_MemoryByteStream* mbs = new AP4_MemoryByteStream(m_Data);
             AP4_Atom* atom;
-            AP4_AtomFactory& atom_factory = AP4_DefaultAtomFactory::Instance;
+            AP4_DefaultAtomFactory atom_factory;
             while (atom_factory.CreateAtomFromStream(*mbs, atom) == AP4_SUCCESS) {
                 AP4_Position position;
                 mbs->Tell(position);

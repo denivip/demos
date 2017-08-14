@@ -35,6 +35,8 @@
 #include "Ap4SampleEntry.h"
 #include "Ap4AvccAtom.h"
 #include "Ap4HvccAtom.h"
+#include "Ap4Utils.h"
+#include "Ap4Mp4AudioInfo.h"
 
 /*----------------------------------------------------------------------
 |   dynamic cast support
@@ -68,8 +70,12 @@ AP4_GetFormatName(AP4_UI32 format)
         case AP4_SAMPLE_FORMAT_AVC2: return "H.264";
         case AP4_SAMPLE_FORMAT_AVC3: return "H.264";
         case AP4_SAMPLE_FORMAT_AVC4: return "H.264";
+        case AP4_SAMPLE_FORMAT_DVAV: return "Dolby Vision (H.264)";
+        case AP4_SAMPLE_FORMAT_DVA1: return "Dolby Vision (H.264)";
         case AP4_SAMPLE_FORMAT_HEV1: return "H.265";
         case AP4_SAMPLE_FORMAT_HVC1: return "H.265";
+        case AP4_SAMPLE_FORMAT_DVH1: return "Dolby Vision (H.265)";
+        case AP4_SAMPLE_FORMAT_DVHE: return "Dolby Vision (H.265)";
         case AP4_SAMPLE_FORMAT_OVC1: return "VC-1";
         case AP4_SAMPLE_FORMAT_OWMA: return "WMA";
         case AP4_SAMPLE_FORMAT_AC_3: return "Dolby Digital (AC-3)";
@@ -99,6 +105,7 @@ AP4_GetFormatName(AP4_UI32 format)
         case AP4_SAMPLE_FORMAT_TX3G: return "Timed Text";
         case AP4_SAMPLE_FORMAT_VC_1: return "SMPTE VC-1";
         case AP4_SAMPLE_FORMAT_XML_: return "XML Metadata";
+        case AP4_SAMPLE_FORMAT_STPP: return "Timed Text";
         default: return NULL;
     }
 }
@@ -182,6 +189,19 @@ AP4_SampleDescription::ToAtom() const
 }
 
 /*----------------------------------------------------------------------
+|   AP4_SampleDescription::GetCodecString
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_SampleDescription::GetCodecString(AP4_String& codec)
+{
+    char coding[5];
+    AP4_FormatFourChars(coding, m_Format);
+    codec.Assign(coding, 4);
+    
+    return AP4_SUCCESS;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_UnknownSampleDescription::AP4_UnknownSampleDescription
 +---------------------------------------------------------------------*/
 AP4_UnknownSampleDescription::AP4_UnknownSampleDescription(AP4_Atom* atom) :
@@ -238,7 +258,7 @@ AP4_Atom*
 AP4_GenericAudioSampleDescription::ToAtom() const
 {
     AP4_AudioSampleEntry* sample_entry = new AP4_AudioSampleEntry(m_Format,
-                                                                  m_SampleRate,
+                                                                  m_SampleRate<<16,
                                                                   m_SampleSize,
                                                                   m_ChannelCount);
     AP4_AtomParent& details = const_cast<AP4_AtomParent&>(m_Details);
@@ -332,14 +352,34 @@ AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI32        format,
     AP4_VideoSampleDescription(width, height, depth, compressor_name),
     m_AvccAtom(NULL)
 {
-    AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, details->GetChild(AP4_ATOM_TYPE_AVCC));
+    AP4_AvccAtom* avcc = AP4_DYNAMIC_CAST(AP4_AvccAtom, m_Details.GetChild(AP4_ATOM_TYPE_AVCC));
     if (avcc) {
-        m_AvccAtom = new AP4_AvccAtom(*avcc);
+        m_AvccAtom = avcc;
     } else {
         // shoud never happen
         m_AvccAtom = new AP4_AvccAtom();
+        m_Details.AddChild(m_AvccAtom);
     }
-    m_Details.AddChild(m_AvccAtom);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_AvcSampleDescription::GetCodecString
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_AvcSampleDescription::GetCodecString(AP4_String& codec) {
+    char coding[5];
+    AP4_FormatFourChars(coding, GetFormat());
+    char workspace[64];
+    AP4_FormatString(workspace,
+                     sizeof(workspace),
+                     "%s.%02X%02X%02X",
+                     coding,
+                     GetProfile(),
+                     GetProfileCompatibility(),
+                     GetLevel());
+    codec = workspace;
+    
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
@@ -353,7 +393,7 @@ AP4_AvcSampleDescription::ToAtom() const
                                   m_Height,
                                   m_Depth,
                                   m_CompressorName.GetChars(),
-                                  *m_AvccAtom);
+                                  &m_Details);
 }
 
 /*----------------------------------------------------------------------
@@ -390,14 +430,114 @@ AP4_HevcSampleDescription::AP4_HevcSampleDescription(AP4_UI32        format,
     AP4_VideoSampleDescription(width, height, depth, compressor_name),
     m_HvccAtom(NULL)
 {
-    AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, details->GetChild(AP4_ATOM_TYPE_HVCC));
+    AP4_HvccAtom* hvcc = AP4_DYNAMIC_CAST(AP4_HvccAtom, m_Details.GetChild(AP4_ATOM_TYPE_HVCC));
     if (hvcc) {
-        m_HvccAtom = new AP4_HvccAtom(*hvcc);
+        m_HvccAtom = hvcc;
     } else {
         // shoud never happen
         m_HvccAtom = new AP4_HvccAtom();
+        m_Details.AddChild(m_HvccAtom);
     }
+}
+
+/*----------------------------------------------------------------------
+|   AP4_HevcSampleDescription::AP4_HevcSampleDescription
++---------------------------------------------------------------------*/
+AP4_HevcSampleDescription::AP4_HevcSampleDescription(AP4_UI32                         format,
+                                                     AP4_UI16                         width,
+                                                     AP4_UI16                         height,
+                                                     AP4_UI16                         depth,
+                                                     const char*                      compressor_name,
+                                                     AP4_UI08                         general_profile_space,
+                                                     AP4_UI08                         general_tier_flag,
+                                                     AP4_UI08                         general_profile,
+                                                     AP4_UI32                         general_profile_compatibility_flags,
+                                                     AP4_UI64                         general_constraint_indicator_flags,
+                                                     AP4_UI08                         general_level,
+                                                     AP4_UI32                         min_spatial_segmentation,
+                                                     AP4_UI08                         parallelism_type,
+                                                     AP4_UI08                         chroma_format,
+                                                     AP4_UI08                         luma_bit_depth,
+                                                     AP4_UI08                         chroma_bit_depth,
+                                                     AP4_UI16                         average_frame_rate,
+                                                     AP4_UI08                         constant_frame_rate,
+                                                     AP4_UI08                         num_temporal_layers,
+                                                     AP4_UI08                         temporal_id_nested,
+                                                     AP4_UI08                         nalu_length_size,
+                                                     const AP4_Array<AP4_DataBuffer>& video_parameters,
+                                                     const AP4_Array<AP4_DataBuffer>& sequence_parameters,
+                                                     const AP4_Array<AP4_DataBuffer>& picture_parameters) :
+    AP4_SampleDescription(TYPE_HEVC, format, NULL),
+    AP4_VideoSampleDescription(width, height, depth, compressor_name)
+{
+    m_HvccAtom = new AP4_HvccAtom(general_profile_space,
+                                  general_tier_flag,
+                                  general_profile,
+                                  general_profile_compatibility_flags,
+                                  general_constraint_indicator_flags,
+                                  general_level,
+                                  min_spatial_segmentation,
+                                  parallelism_type,
+                                  chroma_format,
+                                  luma_bit_depth,
+                                  chroma_bit_depth,
+                                  average_frame_rate,
+                                  constant_frame_rate,
+                                  num_temporal_layers,
+                                  temporal_id_nested,
+                                  nalu_length_size,
+                                  video_parameters,
+                                  sequence_parameters,
+                                  picture_parameters);
     m_Details.AddChild(m_HvccAtom);
+}
+
+/*----------------------------------------------------------------------
+|   ReverseBits
++---------------------------------------------------------------------*/
+static AP4_UI32
+ReverseBits(AP4_UI32 bits)
+{
+    unsigned int count = sizeof(bits) * 8;
+    AP4_UI32 reverse_bits = 0;
+     
+    while (bits) {
+       reverse_bits = (reverse_bits << 1) | (bits & 1);
+       bits >>= 1;
+       count--;
+    }
+    return reverse_bits << count;
+}
+
+/*----------------------------------------------------------------------
+|   AP4_HevcSampleDescription:GetCodecString
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_HevcSampleDescription::GetCodecString(AP4_String& codec) {
+    char coding[5];
+    AP4_FormatFourChars(coding, GetFormat());
+    char profile_space[2] = {0,0};
+    if (GetGeneralProfileSpace() > 0 && GetGeneralProfileSpace() <= 3) {
+        profile_space[0] = 'A'+GetGeneralProfileSpace()-1;
+    }
+    AP4_UI64 constraints = GetGeneralConstraintIndicatorFlags();
+    while (constraints && ((constraints & 0xFF) == 0)) {
+        constraints >>= 8;
+    }
+    char workspace[64];
+    AP4_FormatString(workspace,
+                     sizeof(workspace),
+                     "%s.%s%d.%X.%c%d.%llx",
+                     coding,
+                     profile_space,
+                     GetGeneralProfile(),
+                     ReverseBits(GetGeneralProfileCompatibilityFlags()),
+                     GetGeneralTierFlag()?'H':'L',
+                     GetGeneralLevel(),
+                     constraints);
+    codec = workspace;
+    
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------
@@ -411,7 +551,7 @@ AP4_HevcSampleDescription::ToAtom() const
                                    m_Height,
                                    m_Depth,
                                    m_CompressorName.GetChars(),
-                                   *m_HvccAtom);
+                                   &m_Details);
 }
 
 /*----------------------------------------------------------------------
@@ -582,6 +722,43 @@ AP4_MpegAudioSampleDescription::ToAtom() const
                                    m_SampleSize,
                                    m_ChannelCount,
                                    CreateEsDescriptor());
+}
+
+/*----------------------------------------------------------------------
+|   AP4_MpegAudioSampleDescription::GetCodecString
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_MpegAudioSampleDescription::GetCodecString(AP4_String& codec)
+{
+    char coding[5];
+    AP4_FormatFourChars(coding, GetFormat());
+    char workspace[64];
+    workspace[0] = 0;
+    if (GetFormat() == AP4_SAMPLE_FORMAT_MP4A) {
+        if (GetObjectTypeId() == AP4_OTI_MPEG4_AUDIO) {
+            Mpeg4AudioObjectType object_type = GetMpeg4AudioObjectType();
+            if (object_type == AP4_MPEG4_AUDIO_OBJECT_TYPE_AAC_LC) {
+                const AP4_DataBuffer& dsi = GetDecoderInfo();
+                if (dsi.GetDataSize()) {
+                    AP4_Mp4AudioDecoderConfig dec_config;
+                    AP4_Result result = dec_config.Parse(dsi.GetData(), dsi.GetDataSize());
+                    if (AP4_SUCCEEDED(result)) {
+                        if (dec_config.m_Extension.m_PsPresent) {
+                            object_type = AP4_MPEG4_AUDIO_OBJECT_TYPE_PS;
+                        } else if (dec_config.m_Extension.m_SbrPresent) {
+                            object_type = AP4_MPEG4_AUDIO_OBJECT_TYPE_SBR;
+                        }
+                    }
+                }
+            }
+            AP4_FormatString(workspace, sizeof(workspace), "%s.%02X.%d", coding, (int)GetObjectTypeId(), object_type);
+        } else {
+            AP4_FormatString(workspace, sizeof(workspace), "%s.%02X", coding, (int)GetObjectTypeId());
+        }
+    }
+    
+    codec = workspace;
+    return AP4_SUCCESS;
 }
 
 /*----------------------------------------------------------------------

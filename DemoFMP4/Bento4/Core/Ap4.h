@@ -267,6 +267,7 @@
 #include "Ap4SttsAtom.h"
 #include "Ap4CttsAtom.h"
 #include "Ap4StssAtom.h"
+#include "Ap4ElstAtom.h"
 #include "Ap4FtypAtom.h"
 #include "Ap4VmhdAtom.h"
 #include "Ap4SmhdAtom.h"
@@ -289,6 +290,7 @@
 #include "Ap4OddaAtom.h"
 #include "Ap4AvccAtom.h"
 #include "Ap4HvccAtom.h"
+#include "Ap4DvccAtom.h"
 #include "Ap4Marlin.h"
 #include "Ap4GrpiAtom.h"
 #include "Ap48bdlAtom.h"
@@ -312,6 +314,7 @@
 #include "Ap4SidxAtom.h"
 #include "Ap4AdtsParser.h"
 #include "Ap4AvcParser.h"
+#include "Ap4HevcParser.h"
 #include "Ap4SegmentBuilder.h"
 
 /*----------------------------------------------------------------------
