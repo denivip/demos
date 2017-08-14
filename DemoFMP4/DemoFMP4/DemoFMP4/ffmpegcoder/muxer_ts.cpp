@@ -335,7 +335,7 @@ AddH264Track(AP4_Movie*            movie,
     AP4_UI64 video_track_duration = AP4_ConvertTime(1000*sample_table->GetSampleCount(), media_timescale, movie_timescale);
     AP4_UI64 video_media_duration = 1000*sample_table->GetSampleCount();
     
-    printf("\nA4 vchunkSamplesCount: %i spsa %i ppsa %i\n", sample_table->GetSampleCount(),sps_array.ItemCount(),pps_array.ItemCount());
+    //printf("\nTS video samples: %i, spsa %i, ppsa %i\n", sample_table->GetSampleCount(),sps_array.ItemCount(),pps_array.ItemCount());
     // create a video track
     AP4_Track* track = new AP4_Track(AP4_Track::TYPE_VIDEO,
                                      sample_table,

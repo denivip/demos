@@ -199,7 +199,7 @@ BOOL isSampleBufferContainIFrame(CMSampleBufferRef sampleBuffer)
     return isIFrame;
 }
 
-static int vchunkSamplesCount = 0;
+//static int vchunkSamplesCount = 0;
 void encodeVideo_didCompressH264(void *outputCallbackRefCon, void *sourceFrameRefCon, OSStatus status, VTEncodeInfoFlags infoFlags,
                      CMSampleBufferRef sampleBuffer, BOOL isIFrame)
 {
@@ -272,7 +272,7 @@ void encodeVideo_didCompressH264(void *outputCallbackRefCon, void *sourceFrameRe
             memcpy(&NALUnitLength, dataPointer + bufferOffset, AVCCHeaderLength);
             // Convert the length value from Big-endian to Little-endian
             NALUnitLength = CFSwapInt32BigToHost(NALUnitLength);
-            vchunkSamplesCount++;
+            //vchunkSamplesCount++;
             NSData* data = [[NSData alloc] initWithBytes:(dataPointer + bufferOffset + AVCCHeaderLength) length:NALUnitLength];
             //if(data.length>0){
             //    NSLog(@"encodeVideo: %i. Adding NALU type %i, len %ld", vchunkSamplesCount, ((unsigned char*)data.bytes)[0]&0x1F, data.length);
@@ -383,7 +383,7 @@ OSStatus encodeAudio_inInputDataProc(AudioConverterRef inAudioConverter, UInt32 
             delegateStateToken = [self->_delegate inmemGetStateToken];
         }
         
-        NSDictionary *properties = @{(__bridge NSString *)kVTEncodeFrameOptionKey_ForceKeyFrame: @YES};// TEST
+        NSDictionary *properties = NULL;//@{(__bridge NSString *)kVTEncodeFrameOptionKey_ForceKeyFrame: @YES};// TEST
         VTEncodeInfoFlags flags;
         OSStatus statusCode = VTCompressionSessionEncodeFrameWithOutputHandler(vEncodingSession, imageBuffer,
                                                               presentationTimeStamp, chunkDuration, (__bridge CFDictionaryRef)properties, &flags,
@@ -395,8 +395,8 @@ OSStatus encodeAudio_inInputDataProc(AudioConverterRef inAudioConverter, UInt32 
                                                                     {
                                                                         // Flushing current buffers if needed
                                                                         if([self->_delegate inmemOnBeforeIFrame:delegateStateToken]){
-                                                                            NSLog(@"Flushing, current vchunkSamplesCount: %i", vchunkSamplesCount);
-                                                                            vchunkSamplesCount = 0;
+                                                                            //NSLog(@"Flushing, current vchunkSamplesCount: %i", vchunkSamplesCount);
+                                                                            //vchunkSamplesCount = 0;
                                                                         }
                                                                     }
                                                                     encodeVideo_didCompressH264( (__bridge void *)(self), nil, status, infoFlags, sampleBuffer, isIFrame);
