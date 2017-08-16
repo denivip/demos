@@ -1,7 +1,7 @@
 //  Copyright (c) 2017 DENIVIP Group. All rights reserved.
 //
 
-#import "MainViewController.h"
+#import "MainRecController.h"
 #import "Defaults.h"
 
 #import "CacheFileManager.h"
@@ -9,10 +9,11 @@
 #import "UIGriddableView.h"
 #import "NSTimer+Blocks.h"
 #import "FFReencoder.h"
+#import "FFRedecoder.h"
 
 __weak static PBJVision *weakvision;
 
-@interface MainViewController () <UIDocumentPickerDelegate>
+@interface MainRecController () <UIDocumentPickerDelegate>
 @property (strong, nonatomic) PBJVision *vision;
 
 @property (weak, nonatomic) IBOutlet UIView *previewView;
@@ -37,7 +38,7 @@ static int ddLogLevel = LOG_LEVEL_VERBOSE;
 const CGFloat pinchZoomScaleFactor = 2.0;
 const CGFloat zoomBgZazor = 20.0;
 static int needStartCapture = 0;
-@implementation MainViewController
+@implementation MainRecController
 +(PBJVision *)getPBJVision {
     return weakvision;
 }
@@ -71,7 +72,7 @@ static int needStartCapture = 0;
     
     [self.btReplay setAction:kUIButtonBlockTouchUpInside withBlock:^{
         @strongify(self);
-       // [self saveLastMp42Cloud];
+        [self playRecordedTS:self.lastMP4s];
     }];
     
     [self.toggleStreaming setAction:kUIButtonBlockTouchUpInside withBlock:^{
@@ -242,6 +243,15 @@ static int needStartCapture = 0;
     //}
 }
 
+- (void)playRecordedTS:(NSArray*)tsList {
+    // Creating TSView
+    // Opening set of files
+    FFRedecoder* redec = [[FFRedecoder alloc] init];
+    [redec addTSFiles2Play:tsList];
+    [redec startCrunchingFiles];
+    // Feeding view with frames as long as we can
+}
+
 - (void)saveLastMp42Cloud {
     // Saving current MP4
     if(self.currentMP4 != nil){
@@ -347,8 +357,10 @@ static int needStartCapture = 0;
             NSString *fileName = [NSString stringWithFormat:@"tst%f.ts", [[NSDate date] timeIntervalSince1970]];
             NSURL *directoryURL = [NSURL fileURLWithPath:self.tsChunksPath isDirectory:YES];
             NSURL *fileURL = [directoryURL URLByAppendingPathComponent:fileName];
-            [moof_dat writeToURL:fileURL options:NSDataWritingAtomic error:nil];
+            NSError* err;
+            [moof_dat writeToURL:fileURL options:NSDataWritingAtomic error:&err];
             [self.lastMP4s addObject:fileURL];
+            NSLog(@"dataToFlushInmemVideo: saved chunk %@",fileURL.path);
         };
     }];
     return YES;

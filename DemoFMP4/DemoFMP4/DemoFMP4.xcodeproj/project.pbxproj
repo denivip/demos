@@ -145,9 +145,12 @@
 		30AC6BA01B5501BA00E9DC97 /* H264HwEncoderImpl.m in Sources */ = {isa = PBXBuildFile; fileRef = 30AC6B9F1B5501BA00E9DC97 /* H264HwEncoderImpl.m */; };
 		30AC6BA21B55021000E9DC97 /* VideoToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 30AC6BA11B55021000E9DC97 /* VideoToolbox.framework */; };
 		30AC6BA81B554B2100E9DC97 /* CBCircularData.m in Sources */ = {isa = PBXBuildFile; fileRef = 30AC6BA71B554B2100E9DC97 /* CBCircularData.m */; };
+		30BFA4A81F4478D900E92FEC /* ts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 30BFA4A61F4478D900E92FEC /* ts.cpp */; };
+		30BFA4AB1F44794C00E92FEC /* FFRedecoder.mm in Sources */ = {isa = PBXBuildFile; fileRef = 30BFA4AA1F44794C00E92FEC /* FFRedecoder.mm */; };
+		30BFA4AD1F447D7800E92FEC /* demuxer_ts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 30BFA4AC1F447D7800E92FEC /* demuxer_ts.cpp */; };
 		30D49F8A1A93570A000E79A4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 30D49F891A93570A000E79A4 /* main.m */; };
 		30D49F8D1A93570A000E79A4 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 30D49F8C1A93570A000E79A4 /* AppDelegate.m */; };
-		30D49F931A93570A000E79A4 /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 30D49F921A93570A000E79A4 /* MainViewController.m */; };
+		30D49F931A93570A000E79A4 /* MainRecController.m in Sources */ = {isa = PBXBuildFile; fileRef = 30D49F921A93570A000E79A4 /* MainRecController.m */; };
 		30D49F961A93570A000E79A4 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 30D49F941A93570A000E79A4 /* Main.storyboard */; };
 		30D49F981A93570A000E79A4 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 30D49F971A93570A000E79A4 /* Images.xcassets */; };
 		30D49F9B1A93570A000E79A4 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 30D49F991A93570A000E79A4 /* LaunchScreen.xib */; };
@@ -476,13 +479,21 @@
 		30AC6BA11B55021000E9DC97 /* VideoToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = VideoToolbox.framework; path = System/Library/Frameworks/VideoToolbox.framework; sourceTree = SDKROOT; };
 		30AC6BA61B554B2100E9DC97 /* CBCircularData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CBCircularData.h; sourceTree = "<group>"; };
 		30AC6BA71B554B2100E9DC97 /* CBCircularData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CBCircularData.m; sourceTree = "<group>"; };
+		30BFA4A31F4478D900E92FEC /* ac3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ac3.h; sourceTree = "<group>"; };
+		30BFA4A41F4478D900E92FEC /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = common.h; sourceTree = "<group>"; };
+		30BFA4A51F4478D900E92FEC /* h264.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = h264.h; sourceTree = "<group>"; };
+		30BFA4A61F4478D900E92FEC /* ts.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ts.cpp; sourceTree = "<group>"; };
+		30BFA4A71F4478D900E92FEC /* ts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ts.h; sourceTree = "<group>"; };
+		30BFA4A91F44794C00E92FEC /* FFRedecoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FFRedecoder.h; path = ffmpegcoder/FFRedecoder.h; sourceTree = "<group>"; };
+		30BFA4AA1F44794C00E92FEC /* FFRedecoder.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = FFRedecoder.mm; path = ffmpegcoder/FFRedecoder.mm; sourceTree = "<group>"; };
+		30BFA4AC1F447D7800E92FEC /* demuxer_ts.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = demuxer_ts.cpp; path = ffmpegcoder/demuxer_ts.cpp; sourceTree = "<group>"; };
 		30D49F841A93570A000E79A4 /* DemoFMP4.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DemoFMP4.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		30D49F881A93570A000E79A4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		30D49F891A93570A000E79A4 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		30D49F8B1A93570A000E79A4 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		30D49F8C1A93570A000E79A4 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		30D49F911A93570A000E79A4 /* MainViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
-		30D49F921A93570A000E79A4 /* MainViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MainViewController.m; sourceTree = "<group>"; };
+		30D49F911A93570A000E79A4 /* MainRecController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MainRecController.h; sourceTree = "<group>"; };
+		30D49F921A93570A000E79A4 /* MainRecController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MainRecController.m; sourceTree = "<group>"; };
 		30D49F951A93570A000E79A4 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		30D49F971A93570A000E79A4 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		30D49F9A1A93570A000E79A4 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LaunchScreen.xib; sourceTree = "<group>"; };
@@ -588,12 +599,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		301D89AF1A948B2100840B20 /* Server */ = {
+		301D89AF1A948B2100840B20 /* H264 */ = {
 			isa = PBXGroup;
 			children = (
+				30BFA4A01F4470FA00E92FEC /* Decoding */,
 				30D986E31A95E9C10053121B /* Encoding */,
 			);
-			name = Server;
+			name = H264;
 			sourceTree = "<group>";
 		};
 		3026493A1F3C68E0000DD551 /* Frameworks */ = {
@@ -951,6 +963,39 @@
 			name = Utilities;
 			sourceTree = "<group>";
 		};
+		30BFA4A01F4470FA00E92FEC /* Decoding */ = {
+			isa = PBXGroup;
+			children = (
+				30BFA4A91F44794C00E92FEC /* FFRedecoder.h */,
+				30BFA4AA1F44794C00E92FEC /* FFRedecoder.mm */,
+				30BFA4AC1F447D7800E92FEC /* demuxer_ts.cpp */,
+				30BFA4A21F4478D900E92FEC /* TSDemux */,
+			);
+			name = Decoding;
+			sourceTree = "<group>";
+		};
+		30BFA4A11F4471C400E92FEC /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				30D49F911A93570A000E79A4 /* MainRecController.h */,
+				30D49F921A93570A000E79A4 /* MainRecController.m */,
+			);
+			name = UI;
+			sourceTree = "<group>";
+		};
+		30BFA4A21F4478D900E92FEC /* TSDemux */ = {
+			isa = PBXGroup;
+			children = (
+				30BFA4A31F4478D900E92FEC /* ac3.h */,
+				30BFA4A41F4478D900E92FEC /* common.h */,
+				30BFA4A51F4478D900E92FEC /* h264.h */,
+				30BFA4A61F4478D900E92FEC /* ts.cpp */,
+				30BFA4A71F4478D900E92FEC /* ts.h */,
+			);
+			name = TSDemux;
+			path = ../../TSDemux;
+			sourceTree = "<group>";
+		};
 		30D49F7B1A93570A000E79A4 = {
 			isa = PBXGroup;
 			children = (
@@ -972,14 +1017,13 @@
 		30D49F861A93570A000E79A4 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				301D897F1A94878200840B20 /* Defaults.h */,
 				30D49F8B1A93570A000E79A4 /* AppDelegate.h */,
 				30D49F8C1A93570A000E79A4 /* AppDelegate.m */,
-				30D49F911A93570A000E79A4 /* MainViewController.h */,
-				30D49F921A93570A000E79A4 /* MainViewController.m */,
+				301D897F1A94878200840B20 /* Defaults.h */,
 				30D4A04C1A937A48000E79A4 /* Frameworks */,
-				301D89AF1A948B2100840B20 /* Server */,
+				301D89AF1A948B2100840B20 /* H264 */,
 				30D49F871A93570A000E79A4 /* Supporting Files */,
+				30BFA4A11F4471C400E92FEC /* UI */,
 				308C6A331A938B0A0028C260 /* Utilities */,
 				30D49FC21A936E20000E79A4 /* Vendor */,
 			);
@@ -1268,6 +1312,7 @@
 				30689D451F41BC1300E813BC /* Ap4CttsAtom.cpp in Sources */,
 				30689DA11F41BC1400E813BC /* Ap4TrefTypeAtom.cpp in Sources */,
 				30689D441F41BC1300E813BC /* Ap4ContainerAtom.cpp in Sources */,
+				30BFA4AB1F44794C00E92FEC /* FFRedecoder.mm in Sources */,
 				30689D8F1F41BC1400E813BC /* Ap4StcoAtom.cpp in Sources */,
 				30D4A0181A936EEF000E79A4 /* AFURLConnectionOperation.m in Sources */,
 				30689D8E1F41BC1400E813BC /* Ap4SmhdAtom.cpp in Sources */,
@@ -1336,6 +1381,7 @@
 				30689D7C1F41BC1300E813BC /* Ap4Results.cpp in Sources */,
 				30689D4A1F41BC1300E813BC /* Ap4DecoderSpecificInfoDescriptor.cpp in Sources */,
 				30689D621F41BC1300E813BC /* Ap4IsfmAtom.cpp in Sources */,
+				30BFA4AD1F447D7800E92FEC /* demuxer_ts.cpp in Sources */,
 				30689DAC1F41BC1400E813BC /* Ap4MetaData.cpp in Sources */,
 				30AC6BA01B5501BA00E9DC97 /* H264HwEncoderImpl.m in Sources */,
 				30689DA51F41BC1400E813BC /* Ap4Utils.cpp in Sources */,
@@ -1355,10 +1401,11 @@
 				30689D901F41BC1400E813BC /* Ap4SthdAtom.cpp in Sources */,
 				30689D4E1F41BC1300E813BC /* Ap4DvccAtom.cpp in Sources */,
 				30689D9F1F41BC1400E813BC /* Ap4Track.cpp in Sources */,
-				30D49F931A93570A000E79A4 /* MainViewController.m in Sources */,
+				30D49F931A93570A000E79A4 /* MainRecController.m in Sources */,
 				30689D6A1F41BC1300E813BC /* Ap4MfroAtom.cpp in Sources */,
 				30689D311F41BC1300E813BC /* Ap4AdtsParser.cpp in Sources */,
 				30689DAE1F41BC1400E813BC /* Ap4PosixRandom.cpp in Sources */,
+				30BFA4A81F4478D900E92FEC /* ts.cpp in Sources */,
 				30689D541F41BC1300E813BC /* Ap4FileCopier.cpp in Sources */,
 				30689D5F1F41BC1300E813BC /* Ap4IodsAtom.cpp in Sources */,
 				30D986E91A95F8990053121B /* FFReencoder.m in Sources */,

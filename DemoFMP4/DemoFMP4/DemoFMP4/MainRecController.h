@@ -5,7 +5,7 @@
 #import "PBJVision.h"
 #import "UIButton+Blocks.h"
 
-@interface MainViewController : UIViewController <PBJVisionDelegate>
+@interface MainRecController : UIViewController <PBJVisionDelegate>
 
 +(PBJVision *)getPBJVision;
 @end
