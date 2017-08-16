@@ -1,5 +1,4 @@
 //  Copyright (c) 2017 DENIVIP Group. All rights reserved.
-// https://mobisoftinfotech.com/resources/mguide/h264-encode-decode-using-videotoolbox/
 
 #import <Foundation/Foundation.h>
 #import "H264HwEncoderImpl.h"

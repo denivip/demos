@@ -18,8 +18,12 @@ __weak static PBJVision *weakvision;
 @property (weak, nonatomic) IBOutlet UIView *previewView;
 @property (weak, nonatomic) IBOutlet UIButton *toggleStreaming;
 @property (weak, nonatomic) IBOutlet UIView *uisubsRoot;
+@property (strong, nonatomic) IBOutlet UIButton *btReplay;
+@property (strong, nonatomic) IBOutlet UIButton *btSave2Cloud;
 @property (strong, nonatomic) NSMutableArray* loglines;
 @property (strong, nonatomic) NSMutableData* currentMP4;
+@property (strong, nonatomic) NSMutableArray* lastMP4s;
+@property (strong, nonatomic) NSString* tsChunksPath;
 @property (assign) double tapStartTs;
 @property (assign) double lastActionTs;
 @property (assign) int isRecording;
@@ -54,16 +58,35 @@ static int needStartCapture = 0;
     UIPinchGestureRecognizer* pinchRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@checkselector(self, handlePinchToZoomRecognizer:)];
     [self.uisubsRoot addGestureRecognizer:pinchRecognizer];
     
+    self.lastMP4s = @[].mutableCopy;
+    self.tsChunksPath = [CacheFileManager cachePathForKey:CACHE_RAWCHUNKS_PATH];
+    [[CacheFileManager sharedManager] deleteFilesAtPath:self.tsChunksPath];
+    [[CacheFileManager sharedManager] createDirectoryAtPath:self.tsChunksPath];
+    
+    @weakify(self);
+    [self.btSave2Cloud setAction:kUIButtonBlockTouchUpInside withBlock:^{
+        @strongify(self);
+        [self saveLastMp42Cloud];
+    }];
+    
+    [self.btReplay setAction:kUIButtonBlockTouchUpInside withBlock:^{
+        @strongify(self);
+       // [self saveLastMp42Cloud];
+    }];
+    
     [self.toggleStreaming setAction:kUIButtonBlockTouchUpInside withBlock:^{
+        @strongify(self);
         [self switchRecordingState:1-self.isRecording];
     }];
 
     [NSTimer scheduledTimerWithTimeInterval:1.0 block:^{
+        @strongify(self);
         //double ts = CACurrentMediaTime();
         if(needStartCapture > 0){
             if(self.vision.isPaused){
                 [self.vision resumeVideoCapture];
             }else if(!self.vision.isRecording || needStartCapture > 1){
+                [self.vision setCaptureDirectory:self.tsChunksPath];
                 [self.vision startVideoCapture];
                 [self updateCaptureSettings];// AFTER capture started!!!
             }
@@ -106,11 +129,6 @@ static int needStartCapture = 0;
         [self updateCaptureSettings];
         [self.vision setThumbnailEnabled:NO];
         weakvision = self.vision;
-        
-        NSString* rawcpath = [CacheFileManager cachePathForKey:CACHE_RAWCHUNKS_PATH];
-        [[CacheFileManager sharedManager] deleteFilesAtPath:rawcpath];
-        [[CacheFileManager sharedManager] createDirectoryAtPath:rawcpath];
-        [self.vision setCaptureDirectory:rawcpath];
         [self configureWithInterfaceOrientation: [UIApplication sharedApplication].statusBarOrientation];
         
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
@@ -222,8 +240,11 @@ static int needStartCapture = 0;
     //else{
     //    [self.vision endVideoCapture];
     //}
+}
+
+- (void)saveLastMp42Cloud {
     // Saving current MP4
-    if(self.currentMP4 != nil && self.isRecording == 0){
+    if(self.currentMP4 != nil){
         NSData* data2save = nil;
         @synchronized (self) {
             data2save = self.currentMP4;
@@ -322,6 +343,12 @@ static int needStartCapture = 0;
             if(moof_dat != nil){
                 [self.currentMP4 appendData:moof_dat];
             }
+            // Saving as chunk
+            NSString *fileName = [NSString stringWithFormat:@"tst%f.ts", [[NSDate date] timeIntervalSince1970]];
+            NSURL *directoryURL = [NSURL fileURLWithPath:self.tsChunksPath isDirectory:YES];
+            NSURL *fileURL = [directoryURL URLByAppendingPathComponent:fileName];
+            [moof_dat writeToURL:fileURL options:NSDataWritingAtomic error:nil];
+            [self.lastMP4s addObject:fileURL];
         };
     }];
     return YES;

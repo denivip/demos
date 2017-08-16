@@ -1,11 +1,6 @@
 //  Copyright (c) 2017 DENIVIP Group. All rights reserved.
 //
 
-// http://bento4.sourceforge.net/docs/html/index.html
-// https://github.com/axiomatic-systems/Bento4/blob/master/Source/C%2B%2B/Apps/Mp42Hls/Mp42Hls.cpp
-// https://github.com/axiomatic-systems/Bento4/blob/master/Source/C%2B%2B/Apps/Mp42Ts/Mp42Ts.cpp
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
