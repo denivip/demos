@@ -73,8 +73,7 @@ namespace ts
         
         enum { max_buf_len=2048 };
         char buf[max_buf_len];
-        
-        int len,offset;
+        long len,offset;
     public:
         std::string filename;
 #ifdef WRITEFILES_TOMEM
@@ -89,10 +88,9 @@ namespace ts
         
         bool open(int mode,const char* fmt,...);
         void close(void);
-        int write(const char* p,int l);
+        long write(const char* p,long l);
         int flush(void);
-        int read(char* p,int l);
-        
+        long read(char* p,int l);
         bool is_opened(void) { return fd==-1?false:true; }
     };
     
@@ -200,8 +198,10 @@ namespace ts
         int dump;                                       // 0 - no dump, 1 - dump M2TS timecodes, 2 - dump PTS/DTS, 3 - dump tracks
         int channel;                                    // channel for demux
         int pes_output;                                 // demux to PES
+#ifndef WRITEFILES_TOMEM
         std::string prefix;                             // output file name prefix (autodetect)
         std::string dst;                                // output directory
+#endif
         bool es_parse;
         
     public:

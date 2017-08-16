@@ -36,9 +36,9 @@ namespace h264
     public:
         counter(void):ctx(0),frame_num(0) {}
 
-        void parse(const char* p,int l)
+        void parse(const char* p,long l)
         {
-            for(int i=0;i<l;i++)
+            for(long i=0;i<l;i++)
             {
                 ctx=(ctx<<8)+((unsigned char*)p)[i];
                     if((ctx&0xffffff1f)==0x00000109)    // NAL access unit

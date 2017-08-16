@@ -54,13 +54,14 @@ ts::stream::~stream(void)
 
 void ts::get_prefix_name_by_filename(const std::string& s,std::string& name)
 {
-    int ll=s.length();
+    long ll = s.length();
     const char* p=s.c_str();
     
     while(ll>0)
     {
-        if(p[ll-1]=='/' || p[ll-1]=='\\')
+        if(p[ll-1]=='/' || p[ll-1]=='\\'){
             break;
+        }
         ll--;
     }
     
@@ -68,8 +69,9 @@ void ts::get_prefix_name_by_filename(const std::string& s,std::string& name)
     
     const char* pp=strchr(p,'.');
     
-    if(pp)
+    if(pp){
         name.assign(p,pp-p);
+    }
 }
 
 
@@ -154,16 +156,16 @@ int ts::file::flush(void)
     return l;
 }
 
-int ts::file::write(const char* p,int l)
+long ts::file::write(const char* p,long l)
 {
-    int rc=l;
+    long rc=l;
     while(l>0)
     {
         if(len>=max_buf_len){
             flush();
         }
         
-        int n=max_buf_len-len;
+        long n=max_buf_len-len;
         if(n>l){
             n=l;
         }
@@ -176,13 +178,13 @@ int ts::file::write(const char* p,int l)
     return rc;
 }
 
-int ts::file::read(char* p,int l)
+long ts::file::read(char* p,int l)
 {
     const char* tmp=p;
     
     while(l>0)
     {
-        int n=len-offset;
+        long n=len-offset;
         
         if(n>0)
         {
@@ -195,7 +197,7 @@ int ts::file::read(char* p,int l)
             l-=n;
         }else
         {
-            int m=::read(fd,buf,max_buf_len);
+            long m=::read(fd,buf,max_buf_len);
             if(m==-1 || !m)
                 break;
             len=m;
@@ -378,7 +380,7 @@ int ts::demuxer::demux_ts_packet(const char* ptr, double* video_fps)
             
             ptr+=3;
             
-            int len=end_ptr-ptr;
+            long len=end_ptr-ptr;
             
             if(l>len)
             {
@@ -400,7 +402,7 @@ int ts::demuxer::demux_ts_packet(const char* ptr, double* video_fps)
             if(!s.psi.offset)
                 return -8;
             
-            int len=end_ptr-ptr;
+            long len=end_ptr-ptr;
             
             if(len>ts::table::max_buf_len-s.psi.offset)
                 return -9;
@@ -428,11 +430,11 @@ int ts::demuxer::demux_ts_packet(const char* ptr, double* video_fps)
             
             long len=end_ptr-ptr-4;
             
-            if(len<0 || len%4)
+            if(len<0 || len%4){
                 return -11;
+            }
             
-            int n=len/4;
-            
+            long n=len/4;
             for(int i=0;i<n;i++,ptr+=4)
             {
                 u_int16_t channel=to_int(ptr);
@@ -497,15 +499,19 @@ int ts::demuxer::demux_ts_packet(const char* ptr, double* video_fps)
                         
                         if(!parse_only && !ss.file.is_opened())
                         {
+#ifndef WRITEFILES_TOMEM
                             if(dst.length())
                             {
                                 ss.file.open(file::out,"%s%c%s%s",dst.c_str(),os_slash,prefix.c_str(),get_stream_ext(get_stream_type(ss.type)));
                                 printf("%s%c%s%s\n",dst.c_str(),os_slash,prefix.c_str(),get_stream_ext(get_stream_type(ss.type)));
                             }
-                            
-                            
-                            else
+                            else{
                                 ss.file.open(file::out,"%s%s",prefix.c_str(),get_stream_ext(get_stream_type(ss.type)));
+                            }
+#else
+                            ss.file.open(file::out,"tmp%s",get_stream_ext(get_stream_type(ss.type)));
+#endif
+                            
                         }
                     }
                 }
@@ -626,7 +632,7 @@ int ts::demuxer::demux_ts_packet(const char* ptr, double* video_fps)
             
             if(s.frame_num)
             {
-                int len=end_ptr-ptr;
+                long len=end_ptr-ptr;
                 
                 if(es_parse)
                 {
@@ -643,8 +649,9 @@ int ts::demuxer::demux_ts_packet(const char* ptr, double* video_fps)
                     }
                 }
                 
-                if(s.file.is_opened())
+                if(s.file.is_opened()){
                     s.file.write(ptr,len);
+                }
             }
         }
     }
@@ -735,10 +742,12 @@ int ts::demuxer::demux_file(const char* name, double* video_fps)
 #endif
         return -1;
     }
-    
+#ifndef WRITEFILES_TOMEM
     if(prefix.length()==0) get_prefix_name_by_filename(name,prefix);
-    if(prefix.length())
+    if(prefix.length()){
         prefix+='.';
+    }
+#endif
     
     for(u_int64_t pn=1;;pn++)
     {

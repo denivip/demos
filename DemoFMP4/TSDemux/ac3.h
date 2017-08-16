@@ -39,7 +39,7 @@ namespace ac3
     public:
         counter(void):st(0),ctx(0),skip(0),frame_num(0) {}
 
-        void parse(const char* p,int l)
+        void parse(const char* p,long l)
         {
             static const u_int16_t frame_size_32khz[]=
             {
@@ -57,18 +57,20 @@ namespace ac3
                 768,768,896,896,1024,1024,1152,1152,1280,1280
             };
 
-            for(int i=0;i<l;)
+            for(long i=0;i<l;)
             {
                 if(skip>0)
                 {
-                    int n=l-i;
-                    if(n>skip)
+                    long n=l-i;
+                    if(n>skip){
                         n=skip;
+                    }
                     i+=n;
                     skip-=n;
 
-                    if(i>=l)
+                    if(i>=l){
                         break;
+                    }
                 }
 
 
