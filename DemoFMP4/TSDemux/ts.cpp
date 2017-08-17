@@ -109,7 +109,7 @@ bool ts::file::open(int mode,const char* fmt,...)
         return true;
     }
 #ifdef VERBOSE
-    printf("can`t open file %s %s\n",name,strerror(errno));
+    printf("\ncan`t open file %s %s",name,strerror(errno));
 #endif
     return false;
 }
@@ -197,9 +197,9 @@ long ts::file::read(char* p,int l)
 
 bool ts::demuxer::validate_type(u_int8_t type)
 {
-    if(av_only)
+    if(av_only){
         return strchr("\x01\x02\x80\x1b\xea\x81\x06\x83\x03\x04\x82\x86\x8a",type)?true:false;
-    
+    }
     return true;
 }
 
@@ -322,16 +322,14 @@ int ts::demuxer::demux_ts_packet(const char* ptr, double* video_fps)
         if(ptr>=end_ptr)
             return -3;
     }
-#ifdef VERBOSE
-    if(dump==1)
-        printf("%.4x: [%c%c%c%c] %u.%i\n",
+#if defined(VERBOSE) && VERBOSE == 1
+        printf("\n%.4x: [%c%c%c%c] %u",
                pid,
                transport_error?'e':'-',
                payload_data_exist?'p':'-',
                payload_unit_start_indicator?'s':'-',
                adaptation_field_exist?'a':'-',
-               timecode,
-               continuity_counter
+               timecode
                );
 #endif
     
@@ -431,7 +429,7 @@ int ts::demuxer::demux_ts_packet(const char* ptr, double* video_fps)
                 
                 pid&=0x1fff;
                 
-                if(!demuxer::channel || demuxer::channel==channel)
+                if(demuxer::parse_channel<0 || demuxer::parse_channel==channel)
                 {
                     stream& ss=streams[pid];
                     ss.channel=channel;
@@ -551,11 +549,11 @@ int ts::demuxer::demux_ts_packet(const char* ptr, double* video_fps)
                     case 0x80:          // PTS only
                     {
                         u_int64_t pts=decode_pts(s.psi.buf+9);
-#ifdef VERBOSE
-                        if(dump==2)
-                            printf("%.4x: %llu\n",pid,pts);
-                        else if(dump==3)
-                            printf("%.4x: track=%.4x.%.2i, type=%.2x, stream=%.2x, pts=%llums\n",pid,s.channel,s.id,s.type,s.stream_id,pts/90);
+#if defined(VERBOSE) && VERBOSE == 2
+                            printf("\n%.4x: %llu",pid,pts);
+#endif
+#if defined(VERBOSE) && VERBOSE == 3
+                            printf("\n%.4x: track=%.4x.%.2i, type=%.2x, stream=%.2x, pts=%llums",pid,s.channel,s.id,s.type,s.stream_id,pts/90);
 #endif
                         if(s.dts>0 && pts>s.dts)
                         {
@@ -579,11 +577,11 @@ int ts::demuxer::demux_ts_packet(const char* ptr, double* video_fps)
                     {
                         u_int64_t pts=decode_pts(s.psi.buf+9);
                         u_int64_t dts=decode_pts(s.psi.buf+14);
-#ifdef VERBOSE
-                        if(dump==2)
-                            printf("%.4x: %llu %llu\n",pid,pts,dts);
-                        else if(dump==3)
-                            printf("%.4x: track=%.4x.%.2i, type=%.2x, stream=%.2x, pts=%llums, dts=%llums\n",pid,s.channel,s.id,s.type,s.stream_id,pts/90,dts/90);
+#if defined(VERBOSE) && VERBOSE == 2
+                            printf("\n%.4x: %llu %llu",pid,pts,dts);
+#endif
+#if defined(VERBOSE) && VERBOSE == 3
+                            printf("\n%.4x: track=%.4x.%.2i, type=%.2x, stream=%.2x, pts=%llums, dts=%llums",pid,s.channel,s.id,s.type,s.stream_id,pts/90,dts/90);
 #endif
                         if(s.dts>0 && dts>s.dts)
                         {
@@ -727,7 +725,7 @@ int ts::demuxer::demux_file(const char* name, double* video_fps)
     if(!file.open(file::in,"%s",name))
     {
 #ifdef VERBOSE
-        printf("can`t open file %s\n",name);
+        printf("\ncan`t open file %s",name);
 #endif
         return -1;
     }
@@ -755,7 +753,7 @@ int ts::demuxer::demux_file(const char* name, double* video_fps)
             {
                 buf_len=188;
 #ifdef VERBOSE
-                printf("TS stream detected in %s (packet length=%i)\n",name,buf_len);
+                printf("\nTS stream detected in %s (packet length=%i)",name,buf_len);
 #endif
                 hdmv=false;
             }else if(buf[0]!=0x47 && buf[4]==0x47)
@@ -764,13 +762,13 @@ int ts::demuxer::demux_file(const char* name, double* video_fps)
                     break;
                 buf_len=192;
 #ifdef VERBOSE
-                printf("M2TS stream detected in %s (packet length=%i)\n",name,buf_len);
+                printf("\nM2TS stream detected in %s (packet length=%i)",name,buf_len);
 #endif
                 hdmv=true;
             }else
             {
 #ifdef VERBOSE
-                printf("unknown stream type in %s\n",name);
+                printf("\nunknown stream type in %s",name);
 #endif
                 return -1;
             }
@@ -780,7 +778,7 @@ int ts::demuxer::demux_file(const char* name, double* video_fps)
         if((n=demux_ts_packet(buf, video_fps)))
         {
 #ifdef VERBOSE
-            printf("%s: invalid packet %llu (%i)\n",name,pn,n);
+            printf("\n%s: invalid packet %llu (%i)",name,pn,n);
 #endif
             return -1;
         }

@@ -12,10 +12,9 @@ int avDemuxTS(const char* ts_filepath, void** videobuf, int64_t* videobuf_len, v
 
     ts::demuxer cpp_demuxer;
     cpp_demuxer.parse_only=false;
-    cpp_demuxer.es_parse=false;
-    cpp_demuxer.dump=0;
+    cpp_demuxer.parse_channel=-1;
     cpp_demuxer.av_only=false;
-    cpp_demuxer.channel=0;
+    cpp_demuxer.es_parse=false;
     cpp_demuxer.pes_output=false;
     cpp_demuxer.writeBlockCb = ^(const char* data, int64_t datalen, void* s){
         ts::stream* strm = (ts::stream*)s;

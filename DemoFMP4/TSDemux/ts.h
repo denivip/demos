@@ -25,6 +25,8 @@
 #ifndef __TS_H
 #define __TS_H
 
+#define VERBOSE 3
+
 #include "common.h"
 #include "h264.h"
 #include "ac3.h"
@@ -193,14 +195,13 @@ namespace ts
         bool hdmv;                                      // HDMV mode, using 192 bytes packets
         bool av_only;                                   // Audio/Video streams only
         bool parse_only;                                // no demux
-        int dump;                                       // 0 - no dump, 1 - dump M2TS timecodes, 2 - dump PTS/DTS, 3 - dump tracks
-        int channel;                                    // channel for demux
+        int parse_channel;                              // channel for demux
+        bool es_parse;
         int pes_output;                                 // demux to PES
 
         std::string outputf_prefix;                     // output file name prefix (autodetect)
         std::string outputf_dst;                        // output directory
 
-        bool es_parse;
         
     public:
         u_int64_t base_pts;
@@ -223,7 +224,7 @@ namespace ts
         void write_timecodes2(FILE* fp,u_int64_t first_pts,u_int64_t last_pts,u_int32_t frame_num,u_int32_t frame_len);
 
     public:
-        demuxer(void):hdmv(false),av_only(true),parse_only(false),dump(0),channel(0),base_pts(0),pes_output(0),es_parse(false),subs(0),subs_num(0) {}
+        demuxer(void):hdmv(false),av_only(true),parse_only(false),parse_channel(0),base_pts(0),pes_output(0),es_parse(false),subs(0),subs_num(0) {}
         ~demuxer(void) { if(subs) fclose(subs); }
         
         void show(void);

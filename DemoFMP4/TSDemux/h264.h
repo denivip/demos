@@ -41,8 +41,9 @@ namespace h264
             for(long i=0;i<l;i++)
             {
                 ctx=(ctx<<8)+((unsigned char*)p)[i];
-                    if((ctx&0xffffff1f)==0x00000109)    // NAL access unit
-                        frame_num++;
+                if((ctx&0xffffff1f)==0x00000109){    // NAL access unit
+                    frame_num++;
+                }
             }
         }
 
