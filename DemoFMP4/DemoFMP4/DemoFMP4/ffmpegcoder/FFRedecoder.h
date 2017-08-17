@@ -4,10 +4,11 @@
 
 #ifndef DemoFMP4_FFRedecoder_h
 #define DemoFMP4_FFRedecoder_h
+#import "H264VideoView.h"
 
 @interface FFRedecoder : NSObject
 - (void)addTSFiles2Play:(NSArray*)files;
-- (void)startCrunchingFiles;
+- (void)startCrunchingFiles:(H264VideoView*)target;
 @end
 
 #endif

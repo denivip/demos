@@ -83,15 +83,6 @@ ts::file::~file(void)
 bool ts::file::open(int mode,const char* fmt,...)
 {
     filename.clear();
-#ifdef WRITEFILES_TOMEM
-    if(mode == out){
-        // out_filedata
-        fd = 0;
-        return true;
-    }
-#endif
-    
-    
     char name[512];
     va_list ap;
     va_start(ap,fmt);
@@ -141,12 +132,7 @@ int ts::file::flush(void)
     int l=0;
     while(l<len)
     {
-#ifdef WRITEFILES_TOMEM
-        out_filedata.write(buf+l,len-l);
-        long n=len-l;
-#else
         long n=::write(fd,buf+l,len-l);
-#endif
         if(!n || n==-1){
             break;
         }
@@ -496,22 +482,18 @@ int ts::demuxer::demux_ts_packet(const char* ptr, double* video_fps)
                         ss.channel=s.channel;
                         ss.type=type;
                         ss.id=++s.id;
-                        
-                        if(!parse_only && !ss.file.is_opened())
+                        if(!parse_only && writeBlockCb == NULL)
                         {
-#ifndef WRITEFILES_TOMEM
-                            if(dst.length())
-                            {
-                                ss.file.open(file::out,"%s%c%s%s",dst.c_str(),os_slash,prefix.c_str(),get_stream_ext(get_stream_type(ss.type)));
-                                printf("%s%c%s%s\n",dst.c_str(),os_slash,prefix.c_str(),get_stream_ext(get_stream_type(ss.type)));
+                            if(!ss.sfile.is_opened()){
+                                if(outputf_dst.length())
+                                {
+                                    ss.sfile.open(file::out,"%s%c%s%s",outputf_dst.c_str(),os_slash,outputf_prefix.c_str(),get_stream_ext(get_stream_type(ss.type)));
+                                    printf("%s%c%s%s\n",outputf_dst.c_str(),os_slash,outputf_prefix.c_str(),get_stream_ext(get_stream_type(ss.type)));
+                                }
+                                else{
+                                    ss.sfile.open(file::out,"%s%s",outputf_prefix.c_str(),get_stream_ext(get_stream_type(ss.type)));
+                                }
                             }
-                            else{
-                                ss.file.open(file::out,"%s%s",prefix.c_str(),get_stream_ext(get_stream_type(ss.type)));
-                            }
-#else
-                            ss.file.open(file::out,"tmp%s",get_stream_ext(get_stream_type(ss.type)));
-#endif
-                            
                         }
                     }
                 }
@@ -624,8 +606,13 @@ int ts::demuxer::demux_ts_packet(const char* ptr, double* video_fps)
                         break;
                 }
                 
-                if(pes_output && s.file.is_opened())
-                    s.file.write(s.psi.buf,s.psi.len);
+                if(pes_output)
+                    if(writeBlockCb != NULL){
+                        writeBlockCb(s.psi.buf, s.psi.len, &s);
+                    }
+                    if(s.sfile.is_opened()){
+                        s.sfile.write(s.psi.buf,s.psi.len);
+                    }
                 
                 s.psi.reset();
             }
@@ -648,9 +635,11 @@ int ts::demuxer::demux_ts_packet(const char* ptr, double* video_fps)
                             break;
                     }
                 }
-                
-                if(s.file.is_opened()){
-                    s.file.write(ptr,len);
+                if(writeBlockCb != NULL){
+                    writeBlockCb(ptr, len, &s);
+                }
+                if(s.sfile.is_opened()){
+                    s.sfile.write(ptr,len);
                 }
             }
         }
@@ -742,12 +731,15 @@ int ts::demuxer::demux_file(const char* name, double* video_fps)
 #endif
         return -1;
     }
-#ifndef WRITEFILES_TOMEM
-    if(prefix.length()==0) get_prefix_name_by_filename(name,prefix);
-    if(prefix.length()){
-        prefix+='.';
+
+    if(writeBlockCb == NULL){
+        if(outputf_prefix.length()==0){
+            get_prefix_name_by_filename(name,outputf_prefix);
+        }
+        if(outputf_prefix.length()){
+            outputf_prefix+='.';
+        }
     }
-#endif
     
     for(u_int64_t pn=1;;pn++)
     {

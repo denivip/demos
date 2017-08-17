@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		300F20EA1F45C94C002DA863 /* H264VideoView.m in Sources */ = {isa = PBXBuildFile; fileRef = 300F20E91F45C94C002DA863 /* H264VideoView.m */; };
 		301D89AE1A948B1000840B20 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 301D89AD1A948B1000840B20 /* libz.dylib */; };
 		3026493E1F3C8FFE000DD551 /* muxer_ts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3026493D1F3C8FFE000DD551 /* muxer_ts.cpp */; };
 		30295B341A977A8A0004CCED /* libbz2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 30295B331A977A8A0004CCED /* libbz2.dylib */; };
@@ -199,6 +200,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		300F20E81F45C94C002DA863 /* H264VideoView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = H264VideoView.h; path = ffmpegcoder/H264VideoView.h; sourceTree = "<group>"; };
+		300F20E91F45C94C002DA863 /* H264VideoView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = H264VideoView.m; path = ffmpegcoder/H264VideoView.m; sourceTree = "<group>"; };
 		301D897F1A94878200840B20 /* Defaults.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Defaults.h; sourceTree = "<group>"; };
 		301D89AD1A948B1000840B20 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		302649391F3C68D6000DD551 /* DemoFMP4.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = DemoFMP4.entitlements; path = DemoFMP4/DemoFMP4.entitlements; sourceTree = "<group>"; };
@@ -966,6 +969,8 @@
 		30BFA4A01F4470FA00E92FEC /* Decoding */ = {
 			isa = PBXGroup;
 			children = (
+				300F20E81F45C94C002DA863 /* H264VideoView.h */,
+				300F20E91F45C94C002DA863 /* H264VideoView.m */,
 				30BFA4A91F44794C00E92FEC /* FFRedecoder.h */,
 				30BFA4AA1F44794C00E92FEC /* FFRedecoder.mm */,
 				30BFA4AC1F447D7800E92FEC /* demuxer_ts.cpp */,
@@ -1281,6 +1286,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				300F20EA1F45C94C002DA863 /* H264VideoView.m in Sources */,
 				30689D651F41BC1300E813BC /* Ap4LinearReader.cpp in Sources */,
 				30D4A0151A936EEF000E79A4 /* AFJSONRequestOperation.m in Sources */,
 				30D4A0141A936EEF000E79A4 /* AFImageRequestOperation.m in Sources */,

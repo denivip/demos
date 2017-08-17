@@ -10,6 +10,7 @@
 #import "NSTimer+Blocks.h"
 #import "FFReencoder.h"
 #import "FFRedecoder.h"
+#import "H264VideoView.h"
 
 __weak static PBJVision *weakvision;
 
@@ -21,6 +22,7 @@ __weak static PBJVision *weakvision;
 @property (weak, nonatomic) IBOutlet UIView *uisubsRoot;
 @property (strong, nonatomic) IBOutlet UIButton *btReplay;
 @property (strong, nonatomic) IBOutlet UIButton *btSave2Cloud;
+@property (strong, nonatomic) IBOutlet H264VideoView *vH264play;
 @property (strong, nonatomic) NSMutableArray* loglines;
 @property (strong, nonatomic) NSMutableData* currentMP4;
 @property (strong, nonatomic) NSMutableArray* lastMP4s;
@@ -54,7 +56,7 @@ static int needStartCapture = 0;
     _previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
     [pv.layer addSublayer:_previewLayer];
     [self.previewView addSubview:pv];
-    
+    self.vH264play.hidden = YES;
     self.uisubsRoot.userInteractionEnabled = YES;
     UIPinchGestureRecognizer* pinchRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@checkselector(self, handlePinchToZoomRecognizer:)];
     [self.uisubsRoot addGestureRecognizer:pinchRecognizer];
@@ -245,10 +247,12 @@ static int needStartCapture = 0;
 
 - (void)playRecordedTS:(NSArray*)tsList {
     // Creating TSView
+    [self.vision endVideoCapture];
+    self.vH264play.hidden = NO;
     // Opening set of files
     FFRedecoder* redec = [[FFRedecoder alloc] init];
     [redec addTSFiles2Play:tsList];
-    [redec startCrunchingFiles];
+    [redec startCrunchingFiles:self.vH264play];
     // Feeding view with frames as long as we can
 }
 

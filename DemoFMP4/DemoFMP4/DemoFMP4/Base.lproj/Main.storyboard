@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12121" systemVersion="16G29" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12089"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -21,6 +22,10 @@
                         <rect key="frame" x="0.0" y="0.0" width="1024" height="768"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Hvr-c2-jMh" customClass="H264VideoView">
+                                <rect key="frame" x="40" y="40" width="944" height="628"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="lw8-38-8p9" userLabel="cameraPreview">
                                 <rect key="frame" x="0.0" y="0.0" width="1024" height="768"/>
                                 <color key="backgroundColor" red="0.66666666666666663" green="0.66666666666666663" blue="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
@@ -67,14 +72,18 @@
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstAttribute="centerX" secondItem="lw8-38-8p9" secondAttribute="centerX" id="9qB-Xb-ChG"/>
+                            <constraint firstItem="Hvr-c2-jMh" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="20" id="C5o-HP-kwt"/>
                             <constraint firstAttribute="centerY" secondItem="cAY-cZ-Zjz" secondAttribute="centerY" id="Ddy-eZ-op8"/>
                             <constraint firstAttribute="width" secondItem="lw8-38-8p9" secondAttribute="width" id="K3N-6b-ae8"/>
                             <constraint firstAttribute="width" secondItem="cAY-cZ-Zjz" secondAttribute="width" id="Ogo-Gv-tBO"/>
                             <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="Iej-s7-yhm" secondAttribute="bottom" constant="10" id="Ot2-QC-eHC"/>
+                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="Hvr-c2-jMh" secondAttribute="bottom" constant="100" id="RhS-hU-9Gn"/>
                             <constraint firstAttribute="height" secondItem="lw8-38-8p9" secondAttribute="height" id="TSq-nC-IxF"/>
                             <constraint firstAttribute="height" secondItem="cAY-cZ-Zjz" secondAttribute="height" id="WFq-TM-2Or"/>
+                            <constraint firstItem="Hvr-c2-jMh" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="20" id="bNy-hE-Sbf"/>
                             <constraint firstAttribute="centerY" secondItem="lw8-38-8p9" secondAttribute="centerY" id="cYU-vt-5VK"/>
                             <constraint firstAttribute="centerX" secondItem="cAY-cZ-Zjz" secondAttribute="centerX" id="cnC-VC-Nqj"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="Hvr-c2-jMh" secondAttribute="trailing" constant="20" id="gqx-c4-ckJ"/>
                             <constraint firstAttribute="centerX" secondItem="Iej-s7-yhm" secondAttribute="centerX" id="tKd-zS-doN"/>
                         </constraints>
                     </view>
@@ -89,6 +98,7 @@
                         <outlet property="previewView" destination="lw8-38-8p9" id="2Fb-Aj-AOj"/>
                         <outlet property="toggleStreaming" destination="Iej-s7-yhm" id="PjT-em-FRb"/>
                         <outlet property="uisubsRoot" destination="cAY-cZ-Zjz" id="OUQ-2J-FTb"/>
+                        <outlet property="vH264play" destination="Hvr-c2-jMh" id="p8G-RT-kOQ"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
