@@ -25,7 +25,7 @@
 #ifndef __TS_H
 #define __TS_H
 
-#define VERBOSE 3
+//#define VERBOSE 3
 
 #include "common.h"
 #include "h264.h"
@@ -143,7 +143,7 @@ namespace ts
         
         u_int8_t stream_id;                     // MPEG stream id
         
-        ts::file sfile;                          // output ES file
+        //ts::file sfile;                          // output ES file
         //FILE* timecodes;
         
         u_int64_t dts;                          // current MPEG stream DTS (presentation time for audio, decode time for video)
@@ -199,8 +199,8 @@ namespace ts
         bool es_parse;
         int pes_output;                                 // demux to PES
 
-        std::string outputf_prefix;                     // output file name prefix (autodetect)
-        std::string outputf_dst;                        // output directory
+        //std::string outputf_prefix;                     // output file name prefix (autodetect)
+        //std::string outputf_dst;                        // output directory
 
         
     public:

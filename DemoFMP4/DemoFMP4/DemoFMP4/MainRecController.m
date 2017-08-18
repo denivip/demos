@@ -69,7 +69,7 @@ static int needStartCapture = 0;
     @weakify(self);
     [self.btSave2Cloud setAction:kUIButtonBlockTouchUpInside withBlock:^{
         @strongify(self);
-        [self saveLastMp42Cloud];
+        [self saveLastMp42Cloud:@"ts"];
     }];
     
     [self.btReplay setAction:kUIButtonBlockTouchUpInside withBlock:^{
@@ -254,9 +254,11 @@ static int needStartCapture = 0;
     [redec addTSFiles2Play:tsList];
     [redec startCrunchingFiles:self.vH264play];
     // Feeding view with frames as long as we can
+    //self.currentMP4 = redec.activeAACstream.mutableCopy;
+    //[self saveLastMp42Cloud:@"aac"];
 }
 
-- (void)saveLastMp42Cloud {
+- (void)saveLastMp42Cloud:(NSString*)ext {
     // Saving current MP4
     if(self.currentMP4 != nil){
         NSData* data2save = nil;
@@ -269,7 +271,7 @@ static int needStartCapture = 0;
                 return;
             }
             NSError *error;
-            NSString *fileName = [NSString stringWithFormat:@"tst%f.ts", [[NSDate date] timeIntervalSince1970]];
+            NSString *fileName = [NSString stringWithFormat:@"tst%f.%@", [[NSDate date] timeIntervalSince1970],ext];
             NSURL *directoryURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]] isDirectory:YES];
             [[NSFileManager defaultManager] createDirectoryAtURL:directoryURL withIntermediateDirectories:YES attributes:nil error:&error];
             if (error) {

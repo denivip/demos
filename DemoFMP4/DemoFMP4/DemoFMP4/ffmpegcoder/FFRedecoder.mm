@@ -29,15 +29,35 @@ dispatch_queue_t ffRedecoderDispatchQueue;
 
 - (void)startCrunchingFiles:(H264VideoView*)target {
     NSURL* fileUrl = [self.playlistFiles lastObject];
-    NSLog(@"startCrunchingFiles %@", fileUrl);
+    //NSLog(@"startCrunchingFiles %@", fileUrl);
     if(fileUrl == nil){
         return;
     }
-    void* videobuf = nil;
-    int64_t videobuf_len = 0;
-    void* audiobuf = nil;
-    int64_t audiobuf_len = 0;
-    avDemuxTS([[fileUrl path] UTF8String],&videobuf,&videobuf_len,&audiobuf,&audiobuf_len);
+    NSMutableData* vdt = [[NSMutableData alloc] initWithCapacity:500000];
+    NSMutableData* adt = [[NSMutableData alloc] initWithCapacity:500000];
+    avDemuxTS([[fileUrl path] UTF8String],
+              ^(const char* data, int64_t datalen){
+                  [vdt appendBytes:data length:datalen];
+                  //NSMutableString *dumphex = [NSMutableString stringWithCapacity:datalen];
+                  //for (int i=0; i < datalen; i++) {
+                  //    [dumphex appendFormat:@"%02x ", (unsigned char)data[i]];
+                  //}
+                  //NSLog(@"+vb: %@", dumphex);
+              },
+              ^(const char* data, int64_t datalen){
+                  [adt appendBytes:data length:datalen];
+              });
+    self.activeH264stream = vdt;
+    self.activeAACstream = adt;
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        long offset = 0;
+        while(offset >= 0 && offset < self.activeH264stream.length){
+            offset = offset+[target receivedRawVideoFrame:(uint8_t *)self.activeH264stream.bytes+offset withSize:(uint32_t)(self.activeH264stream.length-offset)];
+            offset = [target findNextNALUOffsetIn:(uint8_t *)self.activeH264stream.bytes withSize:(uint32_t)(self.activeH264stream.length) startAt:offset+3];
+            NSLog(@"Next NALU at %lu", offset);
+            [NSThread sleepForTimeInterval:0.001];
+        }
+    });
 }
 @end
 

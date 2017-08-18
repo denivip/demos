@@ -39,10 +39,10 @@
 // 2) TS Continuity counter (0-15..0-15..)
 // 3) PES PTS/DTS
 
-namespace ts
-{
-    void get_prefix_name_by_filename(const std::string& s,std::string& name);
-}
+//namespace ts
+//{
+//    void get_prefix_name_by_filename(const std::string& s,std::string& name);
+//}
 
 ts::stream::~stream(void)
 {
@@ -52,27 +52,27 @@ ts::stream::~stream(void)
 }
 
 
-void ts::get_prefix_name_by_filename(const std::string& s,std::string& name)
-{
-    long ll = s.length();
-    const char* p=s.c_str();
-    
-    while(ll>0)
-    {
-        if(p[ll-1]=='/' || p[ll-1]=='\\'){
-            break;
-        }
-        ll--;
-    }
-    
-    p+=ll;
-    
-    const char* pp=strchr(p,'.');
-    
-    if(pp){
-        name.assign(p,pp-p);
-    }
-}
+//void ts::get_prefix_name_by_filename(const std::string& s,std::string& name)
+//{
+//    long ll = s.length();
+//    const char* p=s.c_str();
+//    
+//    while(ll>0)
+//    {
+//        if(p[ll-1]=='/' || p[ll-1]=='\\'){
+//            break;
+//        }
+//        ll--;
+//    }
+//    
+//    p+=ll;
+//    
+//    const char* pp=strchr(p,'.');
+//    
+//    if(pp){
+//        name.assign(p,pp-p);
+//    }
+//}
 
 
 ts::file::~file(void)
@@ -109,7 +109,7 @@ bool ts::file::open(int mode,const char* fmt,...)
         return true;
     }
 #ifdef VERBOSE
-    printf("\ncan`t open file %s %s",name,strerror(errno));
+    printf("TS: can`t open file %s %s\n",name,strerror(errno));
 #endif
     return false;
 }
@@ -174,9 +174,9 @@ long ts::file::read(char* p,int l)
         
         if(n>0)
         {
-            if(n>l)
+            if(n>l){
                 n=l;
-            
+            }
             memcpy(p,buf+offset,n);
             p+=n;
             offset+=n;
@@ -323,7 +323,7 @@ int ts::demuxer::demux_ts_packet(const char* ptr, double* video_fps)
             return -3;
     }
 #if defined(VERBOSE) && VERBOSE == 1
-        printf("\n%.4x: [%c%c%c%c] %u",
+        printf("TS: %.4x: [%c%c%c%c] %u\n",
                pid,
                transport_error?'e':'-',
                payload_data_exist?'p':'-',
@@ -480,19 +480,19 @@ int ts::demuxer::demux_ts_packet(const char* ptr, double* video_fps)
                         ss.channel=s.channel;
                         ss.type=type;
                         ss.id=++s.id;
-                        if(!parse_only && writeBlockCb == NULL)
-                        {
-                            if(!ss.sfile.is_opened()){
-                                if(outputf_dst.length())
-                                {
-                                    ss.sfile.open(file::out,"%s%c%s%s",outputf_dst.c_str(),os_slash,outputf_prefix.c_str(),get_stream_ext(get_stream_type(ss.type)));
-                                    printf("%s%c%s%s\n",outputf_dst.c_str(),os_slash,outputf_prefix.c_str(),get_stream_ext(get_stream_type(ss.type)));
-                                }
-                                else{
-                                    ss.sfile.open(file::out,"%s%s",outputf_prefix.c_str(),get_stream_ext(get_stream_type(ss.type)));
-                                }
-                            }
-                        }
+//                        if(!parse_only && writeBlockCb == NULL)
+//                        {
+//                            if(!ss.sfile.is_opened()){
+//                                if(outputf_dst.length())
+//                                {
+//                                    ss.sfile.open(file::out,"%s%c%s%s",outputf_dst.c_str(),os_slash,outputf_prefix.c_str(),get_stream_ext(get_stream_type(ss.type)));
+//                                    printf("%s%c%s%s\n",outputf_dst.c_str(),os_slash,outputf_prefix.c_str(),get_stream_ext(get_stream_type(ss.type)));
+//                                }
+//                                else{
+//                                    ss.sfile.open(file::out,"%s%s",outputf_prefix.c_str(),get_stream_ext(get_stream_type(ss.type)));
+//                                }
+//                            }
+//                        }
                     }
                 }
             }
@@ -535,8 +535,9 @@ int ts::demuxer::demux_ts_packet(const char* ptr, double* video_fps)
             
             if(s.psi.len)
             {
-                if(memcmp(s.psi.buf,"\x00\x00\x01",3))
+                if(memcmp(s.psi.buf,"\x00\x00\x01",3)){
                     return -19;
+                }
                 
                 s.stream_id=to_byte(s.psi.buf+3);
                 
@@ -550,10 +551,10 @@ int ts::demuxer::demux_ts_packet(const char* ptr, double* video_fps)
                     {
                         u_int64_t pts=decode_pts(s.psi.buf+9);
 #if defined(VERBOSE) && VERBOSE == 2
-                            printf("\n%.4x: %llu",pid,pts);
+                            printf("TS: %.4x: %llu\n",pid,pts);
 #endif
 #if defined(VERBOSE) && VERBOSE == 3
-                            printf("\n%.4x: track=%.4x.%.2i, type=%.2x, stream=%.2x, pts=%llums",pid,s.channel,s.id,s.type,s.stream_id,pts/90);
+                            printf("TS: %.4x: track=%.4x.%.2i, type=%.2x, stream=%.2x, pts=%llums\n",pid,s.channel,s.id,s.type,s.stream_id,pts/90);
 #endif
                         if(s.dts>0 && pts>s.dts)
                         {
@@ -578,10 +579,10 @@ int ts::demuxer::demux_ts_packet(const char* ptr, double* video_fps)
                         u_int64_t pts=decode_pts(s.psi.buf+9);
                         u_int64_t dts=decode_pts(s.psi.buf+14);
 #if defined(VERBOSE) && VERBOSE == 2
-                            printf("\n%.4x: %llu %llu",pid,pts,dts);
+                            printf("TS: %.4x: %llu %llu\n",pid,pts,dts);
 #endif
 #if defined(VERBOSE) && VERBOSE == 3
-                            printf("\n%.4x: track=%.4x.%.2i, type=%.2x, stream=%.2x, pts=%llums, dts=%llums",pid,s.channel,s.id,s.type,s.stream_id,pts/90,dts/90);
+                            printf("TS: %.4x: track=%.4x.%.2i, type=%.2x, stream=%.2x, pts=%llums, dts=%llums\n",pid,s.channel,s.id,s.type,s.stream_id,pts/90,dts/90);
 #endif
                         if(s.dts>0 && dts>s.dts)
                         {
@@ -608,9 +609,9 @@ int ts::demuxer::demux_ts_packet(const char* ptr, double* video_fps)
                     if(writeBlockCb != NULL){
                         writeBlockCb(s.psi.buf, s.psi.len, &s);
                     }
-                    if(s.sfile.is_opened()){
-                        s.sfile.write(s.psi.buf,s.psi.len);
-                    }
+//                    if(s.sfile.is_opened()){
+//                        s.sfile.write(s.psi.buf,s.psi.len);
+//                    }
                 
                 s.psi.reset();
             }
@@ -636,9 +637,9 @@ int ts::demuxer::demux_ts_packet(const char* ptr, double* video_fps)
                 if(writeBlockCb != NULL){
                     writeBlockCb(ptr, len, &s);
                 }
-                if(s.sfile.is_opened()){
-                    s.sfile.write(ptr,len);
-                }
+//                if(s.sfile.is_opened()){
+//                    s.sfile.write(ptr,len);
+//                }
             }
         }
     }
@@ -675,7 +676,7 @@ void ts::demuxer::show(void)
             u_int64_t end=s.last_pts+s.frame_length;
             u_int64_t len=end-s.first_pts;
             
-            printf("pid=%i (0x%.4x), ch=%i, id=%.i, type=0x%.2x (%s), stream=0x%.2x",
+            printf("TS: pid=%i (0x%.4x), ch=%i, id=%.i, type=0x%.2x (%s), stream=0x%.2x",
                     pid,pid,s.channel,s.id,s.type,get_stream_ext(get_stream_type(s.type)),s.stream_id);
             
             if(s.frame_length>0)
@@ -714,61 +715,60 @@ void ts::demuxer::show(void)
 
 int ts::demuxer::demux_file(const char* name, double* video_fps)
 {
-//    prefix.clear();
-    
     char buf[192];
-    
     int buf_len=0;
     
     ts::file file;
-    
     if(!file.open(file::in,"%s",name))
     {
 #ifdef VERBOSE
-        printf("\ncan`t open file %s",name);
+        printf("TS: can`t open file %s\n",name);
 #endif
         return -1;
     }
 
-    if(writeBlockCb == NULL){
-        if(outputf_prefix.length()==0){
-            get_prefix_name_by_filename(name,outputf_prefix);
-        }
-        if(outputf_prefix.length()){
-            outputf_prefix+='.';
-        }
-    }
+//    if(writeBlockCb == NULL){
+//        if(outputf_prefix.length()==0){
+//            get_prefix_name_by_filename(name,outputf_prefix);
+//        }
+//        if(outputf_prefix.length()){
+//            outputf_prefix+='.';
+//        }
+//    }
     
     for(u_int64_t pn=1;;pn++)
     {
         if(buf_len)
         {
-            if(file.read(buf,buf_len)!=buf_len)
+            if(file.read(buf,buf_len)!=buf_len){
                 break;
+            }
         }else
         {
-            if(file.read(buf,188)!=188)
+            if(file.read(buf,188)!=188){
                 break;
+            }
             if(buf[0]==0x47 && buf[4]!=0x47)
             {
                 buf_len=188;
 #ifdef VERBOSE
-                printf("\nTS stream detected in %s (packet length=%i)",name,buf_len);
+                printf("TS: TS stream detected in %s (packet length=%i)\n",name,buf_len);
 #endif
                 hdmv=false;
             }else if(buf[0]!=0x47 && buf[4]==0x47)
             {
-                if(file.read(buf+188,4)!=4)
+                if(file.read(buf+188,4)!=4){
                     break;
+                }
                 buf_len=192;
 #ifdef VERBOSE
-                printf("\nM2TS stream detected in %s (packet length=%i)",name,buf_len);
+                printf("TS: M2TS stream detected in %s (packet length=%i)\n",name,buf_len);
 #endif
                 hdmv=true;
             }else
             {
 #ifdef VERBOSE
-                printf("\nunknown stream type in %s",name);
+                printf("TS: unknown stream type in %s\n",name);
 #endif
                 return -1;
             }
@@ -778,7 +778,7 @@ int ts::demuxer::demux_file(const char* name, double* video_fps)
         if((n=demux_ts_packet(buf, video_fps)))
         {
 #ifdef VERBOSE
-            printf("\n%s: invalid packet %llu (%i)",name,pn,n);
+            printf("TS: %s: invalid packet %llu (%i)\n",name,pn,n);
 #endif
             return -1;
         }

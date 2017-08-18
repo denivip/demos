@@ -10,10 +10,8 @@
 
 @interface H264VideoView : UIView
 
-- (BOOL)configureDecoder:(id)codec;
-- (BOOL)displayFrame:(id)frame;
-- (int)throwCurrentStatus;
-
+-(long)findNextNALUOffsetIn:(uint8_t *)frame withSize:(long)frameSize startAt:(long)offset;
+-(long)receivedRawVideoFrame:(uint8_t *)frame withSize:(long)frameSize;
 
 @end
 
