@@ -10,9 +10,10 @@
 
 @interface H264VideoView : UIView
 
--(long)findNextNALUOffsetIn:(uint8_t *)frame withSize:(long)frameSize startAt:(long)offset;
--(long)receivedRawVideoFrame:(uint8_t *)frame withSize:(long)frameSize;
-
+- (long)findNextNALUOffsetIn:(uint8_t *)frame withSize:(long)frameSize startAt:(long)offset;
+- (long)feedViewWithH264:(uint8_t *)frame withSize:(long)frameSize;
+- (BOOL)waitingForMoreH264;
+- (void)resetFeed;
 @end
 
 

@@ -51,12 +51,16 @@ dispatch_queue_t ffRedecoderDispatchQueue;
     self.activeAACstream = adt;
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         long offset = 0;
+        NSLog(@"startCrunchingChunk len=%li", self.activeH264stream.length);
         while(offset >= 0 && offset < self.activeH264stream.length){
-            offset = offset+[target receivedRawVideoFrame:(uint8_t *)self.activeH264stream.bytes+offset withSize:(uint32_t)(self.activeH264stream.length-offset)];
-            offset = [target findNextNALUOffsetIn:(uint8_t *)self.activeH264stream.bytes withSize:(uint32_t)(self.activeH264stream.length) startAt:offset+3];
-            NSLog(@"Next NALU at %lu", offset);
+            if([target waitingForMoreH264]){
+                NSLog(@"Feeding NALU at %li", offset);
+                [target feedViewWithH264:(uint8_t *)self.activeH264stream.bytes+offset withSize:(uint32_t)(self.activeH264stream.length-offset)];
+                offset = [target findNextNALUOffsetIn:(uint8_t *)self.activeH264stream.bytes withSize:(uint32_t)(self.activeH264stream.length) startAt:offset+3];
+            }
             [NSThread sleepForTimeInterval:0.001];
         }
+        [target resetFeed];
     });
 }
 @end

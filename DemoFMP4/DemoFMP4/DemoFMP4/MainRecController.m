@@ -233,13 +233,13 @@ static int needStartCapture = 0;
     [self setStatusLog:self.isRecording>0?@"Streaming started":@"Streaming paused" replace:NO];
     [self.vision muteAudio:NO];
     [self.vision muteVideo:self.isRecording>0?NO:YES];
-    //if(![self.vision isRecording]){
-    //    if([self.vision isPaused]){
-    //        [self.vision resumeVideoCapture];
-    //    }else{
-    //        [self.vision startVideoCapture];
-    //    }
-    //}
+    if(![self.vision isRecording]){
+        if([self.vision isPaused]){
+            [self.vision resumeVideoCapture];
+        }else{
+            [self.vision startVideoCapture];
+        }
+    }
     //else{
     //    [self.vision endVideoCapture];
     //}
@@ -248,6 +248,7 @@ static int needStartCapture = 0;
 - (void)playRecordedTS:(NSArray*)tsList {
     // Creating TSView
     [self.vision endVideoCapture];
+    [self switchRecordingState:0];
     self.vH264play.hidden = NO;
     // Opening set of files
     FFRedecoder* redec = [[FFRedecoder alloc] init];
